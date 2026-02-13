@@ -1,0 +1,71 @@
+# Dependencias
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Frontend (React)
+frontend/build/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Backend (Express/Node.js)
+backend/build/
+backend/dist/
+backend/.env
+backend/.env.local
+backend/.env.development
+backend/.env.production
+
+# Logs
+logs/
+*.log
+
+# Base de datos
+*.sqlite
+*.sqlite3
+*.db
+
+# Prisma
+backend/prisma/migrations/
+
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+*.js.map
+
+# IDEs y Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Sistema Operativo
+Thumbs.db
+Desktop.ini
+
+# Temporales
+*.tmp
+*.temp
+.cache/
+
+# Build y dist
+build/
+dist/
+out/
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
