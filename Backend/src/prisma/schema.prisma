@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -8,117 +8,111 @@ datasource db {
 }
 
 model permisos {
-  id                                           Int                 @id @default(autoincrement())
+  id                                           Int             @id @default(autoincrement())
   usuario_crea_fk                              Int
-  usuario_modifica                             Int
-  fecha_crea                                   DateTime            @default(now()) @db.Timestamp(6)
-  fecha_modifica                               DateTime            @default(now()) @db.Timestamp(6)
-  codigo                                       String              @unique @db.VarChar(100)
-  nombre                                       String              @db.VarChar(100)
+  fecha_crea                                   DateTime        @default(now()) @db.Timestamp(6)
+  fecha_modifica                               DateTime        @default(now()) @db.Timestamp(6)
+  codigo                                       String          @unique @db.VarChar(100)
+  nombre                                       String          @db.VarChar(100)
   descripcion                                  String?
-  activo                                       Boolean             @default(true)
-  usuarios_permisos_usuario_crea_fkTousuarios  usuarios            @relation("permisos_usuario_crea_fkTousuarios", fields: [usuario_crea_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_crea")
-  usuarios_permisos_usuario_modificaTousuarios usuarios            @relation("permisos_usuario_modificaTousuarios", fields: [usuario_modifica], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica")
+  activo                                       Boolean         @default(true)
+  usuario_modifica_fk                          Int
+  usuarios_permisos_usuario_crea_fkTousuarios  usuarios        @relation("permisos_usuario_crea_fkTousuarios", fields: [usuario_crea_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_crea")
+  usuarios_permisos_usuario_modificaTousuarios usuarios        @relation("permisos_usuario_modificaTousuarios", fields: [usuario_modifica_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica_fk")
   roles_permiso                                roles_permiso[]
-  usuarios_permisos                            usuarios_permisos[]
 }
 
 model roles {
-  id                                        Int             @id @default(autoincrement())
+  id                                        Int              @id @default(autoincrement())
   usuario_crea_fk                           Int
-  usuario_modifica                          Int
-  fecha_crea                                DateTime        @default(now()) @db.Timestamp(6)
-  fecha_modifica                            DateTime        @default(now()) @db.Timestamp(6)
-  codigo                                    String          @unique @db.VarChar(100)
-  nombre                                    String          @db.VarChar(100)
+  fecha_crea                                DateTime         @default(now()) @db.Timestamp(6)
+  fecha_modifica                            DateTime         @default(now()) @db.Timestamp(6)
+  codigo                                    String           @unique @db.VarChar(100)
+  nombre                                    String           @db.VarChar(100)
   descripcion                               String?
-  modulo                                    String?         @db.VarChar(100)
-  activo                                    Boolean         @default(true)
-  usuarios_roles_usuario_crea_fkTousuarios  usuarios        @relation("roles_usuario_crea_fkTousuarios", fields: [usuario_crea_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_crea")
-  usuarios_roles_usuario_modificaTousuarios usuarios        @relation("roles_usuario_modificaTousuarios", fields: [usuario_modifica], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica")
+  modulo                                    String?          @db.VarChar(100)
+  activo                                    Boolean          @default(true)
+  usuario_modifica_fk                       Int
+  usuarios_roles_usuario_crea_fkTousuarios  usuarios         @relation("roles_usuario_crea_fkTousuarios", fields: [usuario_crea_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_crea")
+  usuarios_roles_usuario_modificaTousuarios usuarios         @relation("roles_usuario_modificaTousuarios", fields: [usuario_modifica_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica_fk")
   roles_permiso                             roles_permiso[]
+  usuarios_roles                            usuarios_roles[]
 }
 
 model roles_permiso {
   id                                                Int      @id @default(autoincrement())
   usuario_crea_fk                                   Int
-  usuario_modifica                                  Int
   fecha_crea                                        DateTime @default(now()) @db.Timestamp(6)
   fecha_modifica                                    DateTime @default(now()) @db.Timestamp(6)
   rol_fk                                            Int
   permiso_fk                                        Int
+  usuario_modifica_fk                               Int
   usuarios_roles_permiso_usuario_crea_fkTousuarios  usuarios @relation("roles_permiso_usuario_crea_fkTousuarios", fields: [usuario_crea_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_crea")
   permisos                                          permisos @relation(fields: [permiso_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "permiso_fk")
   roles                                             roles    @relation(fields: [rol_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "rol_fk")
-  usuarios_roles_permiso_usuario_modificaTousuarios usuarios @relation("roles_permiso_usuario_modificaTousuarios", fields: [usuario_modifica], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica")
+  usuarios_roles_permiso_usuario_modificaTousuarios usuarios @relation("roles_permiso_usuario_modificaTousuarios", fields: [usuario_modifica_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica_fk")
 }
 
 model usuarios {
-  id                                                             Int                 @id @default(autoincrement())
-  usuario_crea_fk                                                Int
-  usuario_modifica                                               Int
-  fecha_crea                                                     DateTime            @default(now()) @db.Timestamp(6)
-  fecha_modifica                                                 DateTime            @default(now()) @db.Timestamp(6)
-  nombre_usuario                                                 String              @db.VarChar(30)
-  primer_nombre                                                  String              @db.VarChar(100)
-  segundo_nombre                                                 String?             @db.VarChar(100)
-  primer_apellido                                                String              @db.VarChar(100)
-  segundo_apellido                                               String?             @db.VarChar(100)
-  numero_identificacion                                          String              @db.VarChar(10)
-  email                                                          String?             @db.VarChar(200)
-  contrasena                                                     String
-  activo                                                         Boolean             @default(true)
-  permisos_permisos_usuario_crea_fkTousuarios                    permisos[]          @relation("permisos_usuario_crea_fkTousuarios")
-  permisos_permisos_usuario_modificaTousuarios                   permisos[]          @relation("permisos_usuario_modificaTousuarios")
-  roles_roles_usuario_crea_fkTousuarios                          roles[]             @relation("roles_usuario_crea_fkTousuarios")
-  roles_roles_usuario_modificaTousuarios                         roles[]             @relation("roles_usuario_modificaTousuarios")
-  roles_permiso_roles_permiso_usuario_crea_fkTousuarios          roles_permiso[]     @relation("roles_permiso_usuario_crea_fkTousuarios")
-  roles_permiso_roles_permiso_usuario_modificaTousuarios         roles_permiso[]     @relation("roles_permiso_usuario_modificaTousuarios")
-  usuarios_usuarios_usuario_crea_fkTousuarios                    usuarios            @relation("usuarios_usuario_crea_fkTousuarios", fields: [usuario_crea_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_crea")
-  other_usuarios_usuarios_usuario_crea_fkTousuarios              usuarios[]          @relation("usuarios_usuario_crea_fkTousuarios")
-  usuarios_usuarios_usuario_modificaTousuarios                   usuarios            @relation("usuarios_usuario_modificaTousuarios", fields: [usuario_modifica], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica")
-  other_usuarios_usuarios_usuario_modificaTousuarios             usuarios[]          @relation("usuarios_usuario_modificaTousuarios")
-  usuarios_permisos_usuarios_permisos_usuario_crea_fkTousuarios  usuarios_permisos[] @relation("usuarios_permisos_usuario_crea_fkTousuarios")
-  usuarios_permisos_usuarios_permisos_usuario_fkTousuarios       usuarios_permisos[] @relation("usuarios_permisos_usuario_fkTousuarios")
-  usuarios_permisos_usuarios_permisos_usuario_modificaTousuarios usuarios_permisos[] @relation("usuarios_permisos_usuario_modificaTousuarios")
-  usuarios_token_usuarios_token_usuario_crea_fkTousuarios        usuarios_token[]    @relation("usuarios_token_usuario_crea_fkTousuarios")
-  usuarios_token_usuarios_token_usuario_fkTousuarios             usuarios_token[]    @relation("usuarios_token_usuario_fkTousuarios")
-  usuarios_token_usuarios_token_usuario_modificaTousuarios       usuarios_token[]    @relation("usuarios_token_usuario_modificaTousuarios")
-}
-
-model usuarios_permisos {
-  id                                                    Int      @id @default(autoincrement())
-  usuario_crea_fk                                       Int
-  usuario_modifica                                      Int
-  fecha_crea                                            DateTime @default(now()) @db.Timestamp(6)
-  fecha_modifica                                        DateTime @default(now()) @db.Timestamp(6)
-  usuario_fk                                            Int
-  permiso_fk                                            Int
-  usuarios_usuarios_permisos_usuario_crea_fkTousuarios  usuarios @relation("usuarios_permisos_usuario_crea_fkTousuarios", fields: [usuario_crea_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_crea")
-  permisos                                              permisos @relation(fields: [permiso_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "permiso_fk")
-  usuarios_usuarios_permisos_usuario_fkTousuarios       usuarios @relation("usuarios_permisos_usuario_fkTousuarios", fields: [usuario_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_fk")
-  usuarios_usuarios_permisos_usuario_modificaTousuarios usuarios @relation("usuarios_permisos_usuario_modificaTousuarios", fields: [usuario_modifica], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica")
+  id                                                          Int              @id @default(autoincrement())
+  usuario_crea_fk                                             Int
+  usuario_modifica_fk                                         Int
+  fecha_crea                                                  DateTime         @default(now()) @db.Timestamp(6)
+  fecha_modifica                                              DateTime         @default(now()) @db.Timestamp(6)
+  primer_nombre                                               String           @db.VarChar(100)
+  segundo_nombre                                              String?          @db.VarChar(100)
+  primer_apellido                                             String           @db.VarChar(100)
+  segundo_apellido                                            String?          @db.VarChar(100)
+  numero_identificacion                                       String           @db.VarChar(10)
+  email                                                       String           @unique(map: "unique_email") @db.VarChar(200)
+  contrasena                                                  String
+  activo                                                      Boolean          @default(true)
+  permisos_permisos_usuario_crea_fkTousuarios                 permisos[]       @relation("permisos_usuario_crea_fkTousuarios")
+  permisos_permisos_usuario_modificaTousuarios                permisos[]       @relation("permisos_usuario_modificaTousuarios")
+  roles_roles_usuario_crea_fkTousuarios                       roles[]          @relation("roles_usuario_crea_fkTousuarios")
+  roles_roles_usuario_modificaTousuarios                      roles[]          @relation("roles_usuario_modificaTousuarios")
+  roles_permiso_roles_permiso_usuario_crea_fkTousuarios       roles_permiso[]  @relation("roles_permiso_usuario_crea_fkTousuarios")
+  roles_permiso_roles_permiso_usuario_modificaTousuarios      roles_permiso[]  @relation("roles_permiso_usuario_modificaTousuarios")
+  usuarios_usuarios_usuario_crea_fkTousuarios                 usuarios         @relation("usuarios_usuario_crea_fkTousuarios", fields: [usuario_crea_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_crea")
+  other_usuarios_usuarios_usuario_crea_fkTousuarios           usuarios[]       @relation("usuarios_usuario_crea_fkTousuarios")
+  usuarios_usuarios_usuario_modifica_fkTousuarios             usuarios         @relation("usuarios_usuario_modifica_fkTousuarios", fields: [usuario_modifica_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica_fk")
+  other_usuarios_usuarios_usuario_modifica_fkTousuarios       usuarios[]       @relation("usuarios_usuario_modifica_fkTousuarios")
+  usuarios_roles_usuarios_roles_usuario_crea_fkTousuarios     usuarios_roles[] @relation("usuarios_roles_usuario_crea_fkTousuarios")
+  usuarios_roles_usuarios_roles_usuario_fkTousuarios          usuarios_roles[] @relation("usuarios_roles_usuario_fkTousuarios")
+  usuarios_roles_usuarios_roles_usuario_modifica_fkTousuarios usuarios_roles[] @relation("usuarios_roles_usuario_modifica_fkTousuarios")
+  usuarios_token_usuarios_token_usuario_crea_fkTousuarios     usuarios_token[] @relation("usuarios_token_usuario_crea_fkTousuarios")
+  usuarios_token_usuarios_token_usuario_fkTousuarios          usuarios_token[] @relation("usuarios_token_usuario_fkTousuarios")
+  usuarios_token_usuarios_token_usuario_modificaTousuarios    usuarios_token[] @relation("usuarios_token_usuario_modificaTousuarios")
 }
 
 model usuarios_token {
-  id                                                 Int             @id @default(autoincrement())
+  id                                                 Int      @id @default(autoincrement())
   usuario_crea_fk                                    Int
-  usuario_modifica                                   Int
-  fecha_crea                                         DateTime        @default(now()) @db.Timestamp(6)
-  fecha_modifica                                     DateTime        @default(now()) @db.Timestamp(6)
+  fecha_crea                                         DateTime @default(now()) @db.Timestamp(6)
+  fecha_modifica                                     DateTime @default(now()) @db.Timestamp(6)
   usuario_fk                                         Int
   token                                              String
-  activo                                             Boolean         @default(true)
-  tipo                                               tipo_token_enum
-  ip_origen                                          String          @db.VarChar(30)
-  user_agent                                         String          @db.VarChar(20)
-  fecha_expiracion                                   DateTime        @db.Timestamp(6)
-  usuarios_usuarios_token_usuario_crea_fkTousuarios  usuarios        @relation("usuarios_token_usuario_crea_fkTousuarios", fields: [usuario_crea_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_crea")
-  usuarios_usuarios_token_usuario_fkTousuarios       usuarios        @relation("usuarios_token_usuario_fkTousuarios", fields: [usuario_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_fk")
-  usuarios_usuarios_token_usuario_modificaTousuarios usuarios        @relation("usuarios_token_usuario_modificaTousuarios", fields: [usuario_modifica], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica")
+  tipo                                               String   @db.VarChar(30)
+  activo                                             Boolean  @default(true)
+  ip_origen                                          String   @db.VarChar(30)
+  user_agent                                         String   @db.VarChar(80)
+  fecha_expiracion                                   DateTime @db.Timestamp(6)
+  usuario_modifica_fk                                Int
+  usuarios_usuarios_token_usuario_crea_fkTousuarios  usuarios @relation("usuarios_token_usuario_crea_fkTousuarios", fields: [usuario_crea_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_crea")
+  usuarios_usuarios_token_usuario_fkTousuarios       usuarios @relation("usuarios_token_usuario_fkTousuarios", fields: [usuario_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_fk")
+  usuarios_usuarios_token_usuario_modificaTousuarios usuarios @relation("usuarios_token_usuario_modificaTousuarios", fields: [usuario_modifica_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica_fk")
 }
 
-enum tipo_token_enum {
-  access
-  refresh
+model usuarios_roles {
+  id                                                    Int      @id @default(autoincrement())
+  usuario_crea_fk                                       Int
+  usuario_modifica_fk                                   Int
+  fecha_crea                                            DateTime @default(now()) @db.Timestamp(6)
+  fecha_modifica                                        DateTime @default(now()) @db.Timestamp(6)
+  usuario_fk                                            Int
+  rol_fk                                                Int
+  usuarios_usuarios_roles_usuario_crea_fkTousuarios     usuarios @relation("usuarios_roles_usuario_crea_fkTousuarios", fields: [usuario_crea_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_crea")
+  roles                                                 roles    @relation(fields: [rol_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "rol_fk")
+  usuarios_usuarios_roles_usuario_fkTousuarios          usuarios @relation("usuarios_roles_usuario_fkTousuarios", fields: [usuario_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_fk")
+  usuarios_usuarios_roles_usuario_modifica_fkTousuarios usuarios @relation("usuarios_roles_usuario_modifica_fkTousuarios", fields: [usuario_modifica_fk], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usuario_modifica_fk")
 }
