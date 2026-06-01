@@ -1,9 +1,9 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
+import usuariosRoutes from "../modules/usuarios/Routes/usuarios.routes";
 
 const router = Router();
 
-router.post('/prueba', (request: Request, response: Response) => {
-    response.status(200).json({"mensaje" : "Hola mundo :D"});
-})
+// Rutas de usuarios
+router.use('/usuarios', usuariosRoutes);
 
 export default router;

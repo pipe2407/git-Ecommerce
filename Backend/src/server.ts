@@ -1,6 +1,6 @@
 import cors from 'cors';
 import router from './router/router';
-import express, { Response } from 'express';
+import express, { Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 
 //Declaracion del servidor
@@ -25,7 +25,7 @@ app.use(limiter);
 //Enrutador
 app.use('/api', router);
 //Redirigir las rutas no mapeadas
-app.use((res:Response) => {
+app.use((req: Request, res: Response) => {
     res.status(404).json({status: 'error', msg: 'Ruta no encontrada'});
 });
 
