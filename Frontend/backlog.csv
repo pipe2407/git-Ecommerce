@@ -1,0 +1,129 @@
+E-comerce,,,,,,,Integrantes,Brandon Dulian Gracias Suárez,,
+,,,,,,,,Juan Felipe Pinto Sandoval,,
+,,,,Link de los mockups,,,,Edilson Andrés Luna Herrera,,
+,,,,Versión ,No 1,,,DAIBER ARLEY MANTILLA CARREÑO,,
+,,,,Estado,No aprobada,,,Victor Ricardo Serpa Núñez,,
+,,,,,,,,,,
+HISTORIAS DE USUARIO,,,,,,,,,,
+DIRECCIÓN DE PRIMERA INFANCIA,,,,,,,,,,
+App BM,,,,,,,,,,
+,,,,,,,,,,
+Identificador (ID) de la historia,,,Enunciado de la historia,,,,Criterios de aceptación,,,
+,Módulo,Prioridad,Rol,Característica / Funcionalidad,Razón / Resultado,Número (#) de escenario,Criterio de aceptación (Título),Contexto,Evento,Resultado / Comportamiento esperado
+EC-001,Registro,ALTO,Usuario comercial,Necesito registrarme,Registrarme para poder acceder al portal web y a sus funcionalidades de listar y vender productos,1,Registro de usuarios,"El usaurio ingresa email y contraseña;
+El email debe ser valido, ej: Vane@gmail.com. Si no cumple con este formato debe indicar: ""El correo no cumple con el formato requerido"". Si la contrasena no cumple con las validaciones adecuadas, se debe indicar ""La contrasena debe cumplir con los criterios de longitud, caracteres especiales, y al menos un numero""",El usuario ingresa email y contraseña y da clic en registrar. ,"Si cumple con el correo en formato adecuado y la contraseña es correcta, al dar clic en el botón de ""Registrar"", debe guardarse su informacion en base de datos."
+,,,,,,,,,,
+EC-002,Login,ALTO,Administrador,Necesito autenticarme,Acceder al sistema,1,Validación de usuarios,"El usaurio ingresa email y contraseña;
+ El email debe ser valido, ej: Vane@gmail.com. Si no cumple con este formato debe indicar   que ( las credenciales ingresadas son incorrectas)
+Si el usuarios y contraseña son incorrectas tambien debe mostrar (Las credenciales son incorrectas)",El usuario ingresa email y contraseña y da clic en ingresar. ,"Si cumple con el correo en formato adecuado y la contraseña es correcta, al dar clic en el botón de ""Ingresar"" se debe validar en la bd si efectivamente los datos corresponden a un usuario registrado. 
+1. Si el usuario no existe en el sistema se le indica que (Las credenciales ingresadas son incorrectas)
+2. Si las credenciales son correctas se debe redireccionar al usuario al home para hacer uso de los servicios"
+,,,,,,2,Olvido de contraseña,"En caso de que un usuario olvide su contraseña, en la pantalla de inicio se debe dar clic en el botón ""Olvidaste tu contraseña"", lo que permite digitar el correo electronico asociado al usuario y enviar un correo con la contraseña nueva para ingresar al sistema.",Cliente da clic en la opción (Olvidaste tu contraseña),"Si el usuario existe en el sistema, se le indica que hemos enviado un correo a esa dirección con la contraseña de respaldo. 
+Si el usuario no existe, se debe mostrar un mensaje donde indique que los datos ingresados son incorrectos. "
+,,ALTO,Usuario comercial,Necesito autenticarme,Acceder al sistema para realizar compras,1,Validación de credenciales-usuario,"El usaurio ingresa email y contraseña;
+ El email debe ser valido, ej: Vane@gmail.com. Si no cumple con este formato debe indicar   que ( las credenciales ingresadas son incorrectas)
+Si el usuarios y contraseña son incorrectas tambien debe mostrar (Las credenciales son incorrectas)",El usuario ingresa email y contraseña y da clic en ingresar. ,"Si cumple con el correo en formato adecuado y la contraseña es correcta, al dar clic en el botón de ""Ingresar"" se debe validar en la bd si efectivamente los datos correcponden a un usuario registrado. 
+1. Si el usuario no existe en el sistema se le indica que (Las credenciales ingresadas son incorrectas)
+2. Si las credenciales son correctas se debe redireccionar al usuario al home para hacer uso de los servicios"
+,,,,,,2,Olvido de contraseña,"En caso de que un usuario olvide su contraseña, en la pantalla de inicio se debe dar clic en el botón ""Olvidaste tu contraseña"", lo que permite digitar el correo electronico asociado al usuario y enviar un correo con la contraseña nueva para ingresar al sistema.",Cliente da clic en la opción (Olvidaste tu contraseña),"Si el usuario existe en el sistema, se le indica que hemos enviado un correo a esa dirección con la contraseña de respaldo. 
+Si el usuario no existe, se debe mostrar un mensaje donde indique que los datos ingresados son incorrectos. "
+,,,,,,,,,,
+EC-003,Gestión sesión usuario,ALTO,Administrador ,Cambiar contraseña del perfil - aplica para todas las pantallas ,Cambiar contraseña,1,Cambiar contraseña ,"El usuario debe presionar en el icono de la parte superior derecha, donde se encuentra el popup de informacion del mismo, y luego presionar al boton de restablecer contraseña","Cliente presiona boton de popup informacion, luego presiona boton de restablecer contraseña","El usuario da clic en cambiar contraseña y debe desplegarse un popup con los siguientes campos y botones. 
+1. Un icono de la x, al dar clic aquí debe retornarlo a la pagina anterior. 
+2. Campo para digitar la contraseña actual
+3. Campo para digitar contraseña Nueva
+4. Campo para repetir contraseña nueva
+
+Al dar clic en el boteon de cambiar debe el sistema validar las siguientes restricciones. si infrige con alguna de estas debe mostrarse en el popup para que el usuaeio la corrija y pueda cambiar la contraseña
+1. La contrasena actual debe ser correcta. 
+2. La contraseña nueva debe, tener minímo 8 caracteres máx 24.mínimo 1 mayuscula, una minuscula y un caracter especial. 
+3. La contraseña que se repite debe ser exactamente igual a la nueva, si no es igual indicarlo.
+
+Si cumple con las anteriores restricciones, al dar clic en cambiar debe salir otro popup que diga que su contraseña se ha cambiado con éxito, y al dar clic en el botón de ok. saque al usuario al login para que ingrese nuevamente. "
+,,,,Cerrar sesión - aplica para todas las pantallas ,Salir del sistema,2,Cerrar sesión,"El usuario debe presionar en el icono de la parte superior derecha, donde se encuentra el popup de informacion del mismo, y luego presionar al boton de cerrar sesion",Cliente da clic en la fecha donde aparece el nombre y luego en la opción de cerrar sesión.,"El usuario da clic en cerrar sesión y el sistema debe cerrar la sesión del usuario, de takl manera que si ingresa al link esta redirija al usuario al login. "
+,,ALTO,"Usuario comercial
+",Cambiar contraseña del perfil - aplica para todas las pantallas ,Cambiar contraseña,1,Cambiar contraseña ,"El usuario debe presionar en el icono de la parte superior derecha, donde se encuentra el popup de informacion del mismo, y luego presionar al boton de restablecer contraseña","Cliente presiona boton de popup informacion, luego presiona boton de restablecer contraseña","El usuario da clic en cambiar contraseña y debe desplegarse un popup con los siguientes campos y botones. 
+1. Un icono de la x, al dar clic aquí debe retornarlo a la pagina anterior. 
+2. Campo para digitar la contraseña actual
+3. Campo para digitar contraseña Nueva
+4. Campo para repetir contraseña nueva
+
+Al dar clic en el boteon de cambiar debe el sistema validar las siguientes restricciones. si infrige con alguna de estas debe mostrarse en el popup para que el usuaeio la corrija y pueda cambiar la contraseña
+1. La contrasena actual debe ser correcta. 
+2. La contraseña nueva debe, tener minímo 8 caracteres máx 24.mínimo 1 mayuscula, una minuscula y un caracter especial. 
+3. La contraseña que se repite debe ser exactamente igual a la nueva, si no es igual indicarlo.
+
+Si cumple con las anteriores restricciones, al dar clic en cambiar debe salir otro popup que diga que su contraseña se ha cambiado con éxito, y al dar clic en el botón de ok. saque al usuario al login para que ingrese nuevamente. "
+,,,,Cerrar sesión - aplica para todas las pantallas ,Salir del sistema,2,Cerrar sesión,"El usaurio debe dar clic en la fecha hacia abajo donde aparece el nombre del usuario, para que se le despliegue la opción de cerrar sesión",Cliente da clic en la fecha donde aparece el nombre y luego en la opción de cerrar sesión.,"El usuario da clic en cerrar sesión y el sistema debe cerrar la sesión del usuario, de takl manera que si ingresa al link esta redirija al usuario al login. "
+,,,,,,,,,,
+EC-004,Catálogo,ALTO,Usuario Comercial,Visualización de productos publicados,Permitir a los usuarios conocer los artículos tecnológicos disponibles en la plataforma.,1,Visualización correcta del catálogo,El usuario (logueado o no logueado) ingresa a la página principal.,El sistema carga el listado de productos disponibles.,"Se muestran productos en formato de tarjetas con:
+
+1. Imagen principal
+
+2. Nombre del producto
+
+3. Precio
+
+4. Descripción limitada a 40 caracteres seguida de “...”."
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+EC-005,Detalle producto,ALTO,Usuario comercial,"visualizar información completa de un producto (nombre, precio, descripción, imágenes, especificaciones técnicas y stock disponible)",poder tomar una decisión de compra informada,1,Visualización completa del detalle del producto,Dado que el usuario ha encontrado un producto en el catálogo,Cuando accede a la página de detalle del producto,"Entonces el sistema muestra nombre, precio, descripción, galería de imágenes, especificaciones técnicas y cantidad en stock"
+,,,Usuario comercial,"visualizar información completa de un producto (nombre, precio, descripción, imágenes, especificaciones técnicas y stock disponible)",poder tomar una decisión de compra informada,2,Galería de imágenes funcional,Dado que el usuario está viendo el detalle de un producto con múltiples imágenes,Cuando hace clic en las miniaturas de la galería,Entonces la imagen principal se actualiza mostrando la miniatura seleccionada
+,,,Usuario comercial,"visualizar información completa de un producto (nombre, precio, descripción, imágenes, especificaciones técnicas y stock disponible)",poder tomar una decisión de compra informada,3,Producto sin stock disponible,Dado que el usuario accede al detalle de un producto cuyo stock es cero,Cuando visualiza la página de detalle,Entonces el sistema muestra el mensaje 'Sin stock disponible' y deshabilita el botón 'Agregar al carrito'
+,,,Usuario comercial,"visualizar información completa de un producto (nombre, precio, descripción, imágenes, especificaciones técnicas y stock disponible)",poder tomar una decisión de compra informada,4,Botón de agregar al carrito desde el detalle,Dado que el usuario visualiza un producto con stock disponible,Cuando hace clic en el botón 'Agregar al carrito',Entonces el producto se añade al carrito y el sistema muestra una notificación de confirmación
+,,,,,,,,,,
+EC-006,Checkout,ALTO,Usuario comercial,"completar el proceso de compra (resumen del pedido, datos de envío y método de pago) de forma segura y sencilla",finalizar mi pedido y recibir confirmación de la compra,1,Visualización correcta del resumen del pedido,Dado que el usuario ha añadido productos al carrito y accede al checkout,Cuando el sistema carga la pantalla de checkout,"Entonces se muestra el resumen con nombre, imagen, cantidad, precio unitario y total de cada producto, más el total general del pedido"
+,,,Usuario comercial,"completar el proceso de compra (resumen del pedido, datos de envío y método de pago) de forma segura y sencilla",finalizar mi pedido y recibir confirmación de la compra,2,Validación de campos de envío obligatorios,Dado que el usuario está en el paso de datos de envío del checkout,"Cuando intenta continuar dejando campos obligatorios vacíos (nombre, dirección, ciudad, teléfono)",Entonces el sistema resalta los campos vacíos en rojo y muestra el mensaje 'Este campo es obligatorio' sin avanzar al siguiente paso
+,,,Usuario comercial,"completar el proceso de compra (resumen del pedido, datos de envío y método de pago) de forma segura y sencilla",finalizar mi pedido y recibir confirmación de la compra,3,Selección y procesamiento del método de pago,Dado que el usuario ha completado los datos de envío y selecciona un método de pago (tarjeta crédito/débito o transferencia),Cuando confirma el pedido haciendo clic en 'Realizar pedido',"Entonces el sistema procesa el pago; si es exitoso muestra la pantalla de confirmación con número de pedido; si falla, muestra el mensaje de error del procesador sin perder los datos ingresados"
+,,,Usuario comercial,"completar el proceso de compra (resumen del pedido, datos de envío y método de pago) de forma segura y sencilla",finalizar mi pedido y recibir confirmación de la compra,4,Pago rechazado por fondos insuficientes,Dado que el usuario confirma el pedido con una tarjeta sin fondos suficientes,Cuando el sistema intenta procesar el pago,"Entonces se muestra el mensaje 'Pago rechazado: fondos insuficientes. Verifique su tarjeta o elija otro método de pago', permaneciendo en la pantalla de pago"
+,,,,,,,,,,
+EC-007,Historial,MEDIO,Usuario comercial,consultar el historial de mis pedidos anteriores con su estado actual,hacer seguimiento de mis compras y conocer el estado de cada pedido,1,,Dado que el usuario ha realizado al menos una compra y accede a la sección 'Mis pedidos',Cuando el sistema carga el historial,"Entonces se muestra una lista de pedidos ordenados del más reciente al más antiguo, con número de pedido, fecha, estado y monto total"
+,,,Usuario comercial,consultar el historial de mis pedidos anteriores con su estado actual,hacer seguimiento de mis compras y conocer el estado de cada pedido,2,Detalle de un pedido específico,Dado que el usuario visualiza su historial de pedidos,Cuando hace clic en un pedido de la lista,"Entonces el sistema muestra el detalle completo: productos comprados, cantidad, precios, datos de envío, método de pago y estado actual del pedido"
+,,,Usuario comercial,consultar el historial de mis pedidos anteriores con su estado actual,hacer seguimiento de mis compras y conocer el estado de cada pedido,3,Estado actualizado del pedido,Dado que el usuario tiene un pedido en proceso,Cuando consulta el historial,Entonces el estado del pedido refleja la etapa actual (Pendiente / En preparación / Enviado / Entregado / Cancelado) y la fecha de la última actualización
+,,,Usuario comercial,consultar el historial de mis pedidos anteriores con su estado actual,hacer seguimiento de mis compras y conocer el estado de cada pedido,4,Sin pedidos registrados,Dado que el usuario nunca ha realizado una compra,Cuando accede a la sección 'Mis pedidos',Entonces el sistema muestra el mensaje 'Aún no tienes pedidos realizados' junto a un botón 'Ir al catálogo'
+,,,,,,,,,,
+EC-008,Publicación,ALTO,Usuario comercial,"crear y publicar nuevos productos en el catálogo con toda su información (nombre, descripción, precio, stock e imágenes)",que los usuarios comerciales puedan ver y comprar los productos disponibles,1,Creación exitosa de un producto,Dado que el administrador accede al formulario de creación de producto,"Cuando completa todos los campos obligatorios (nombre, precio, stock, descripción, al menos una imagen) y hace clic en 'Publicar'","Entonces el sistema guarda el producto, lo hace visible en el catálogo y muestra el mensaje 'Producto publicado exitosamente'"
+,,,Usuario comercial,"crear y publicar nuevos productos en el catálogo con toda su información (nombre, descripción, precio, stock e imágenes)",que los usuarios comerciales puedan ver y comprar los productos disponibles,2,Validación de campos obligatorios en la publicación,Dado que el administrador está en el formulario de creación de producto,Cuando intenta publicar dejando el nombre o el precio vacíos,Entonces el sistema resalta los campos faltantes con el mensaje 'Este campo es obligatorio' y no permite guardar el producto
+,,,Usuario comercial,"crear y publicar nuevos productos en el catálogo con toda su información (nombre, descripción, precio, stock e imágenes)",que los usuarios comerciales puedan ver y comprar los productos disponibles,3,Carga de imágenes del producto,Dado que el administrador está creando un producto y sube imágenes,Cuando arrastra o selecciona archivos (JPG/PNG/videos),"Entonces las imágenes se previsualisan en el formulario; si alguna excede el peso máximo o tiene formato inválido, el sistema indica 'Formato no soportado o archivo demasiado grande'"
+,,,Usuario comercial,"crear y publicar nuevos productos en el catálogo con toda su información (nombre, descripción, precio, stock e imágenes)",que los usuarios comerciales puedan ver y comprar los productos disponibles,4,Precio y stock con valores inválidos,Dado que el administrador ingresa '−20' como precio y '−5' como stock,Cuando intenta publicar el producto,"Entonces el sistema muestra 'El precio debe ser mayor a cero' y 'El stock no puede ser negativo', bloqueando la publicación"
+,,,,,,,,,,
+EC-009,Gestión publicaciones,MEDIO,Administrador,"editar, deshabilitar o eliminar productos ya publicados en el catálogo",mantener la información del catálogo actualizada y precisa,1,Edición exitosa de un producto publicado,Dado que el administrador accede al listado de productos y selecciona uno para editar,Cuando modifica el precio y la descripción y hace clic en 'Guardar cambios',"Entonces el sistema actualiza el producto, refleja los cambios inmediatamente en el catálogo y muestra 'Cambios guardados correctamente'"
+,,,Administrador,"editar, deshabilitar o eliminar productos ya publicados en el catálogo",mantener la información del catálogo actualizada y precisa,2,Deshabilitación de un producto,Dado que el administrador selecciona un producto activo en el panel de gestión,Cuando hace clic en el botón 'Deshabilitar',Entonces el producto deja de aparecer en el catálogo para los usuarios comerciales; el administrador ve el producto marcado como 'Inactivo' y puede reactivarlo
+,,,Administrador,"editar, deshabilitar o eliminar productos ya publicados en el catálogo",mantener la información del catálogo actualizada y precisa,3,Eliminación de un producto con pedidos activos,Dado que el administrador intenta eliminar un producto que tiene pedidos en estado 'Pendiente' o 'En preparación',Cuando hace clic en 'Eliminar',Entonces el sistema muestra el mensaje 'No es posible eliminar este producto porque tiene pedidos activos. Puede deshabilitarlo en su lugar' y cancela la operación
+,,,Administrador,"editar, deshabilitar o eliminar productos ya publicados en el catálogo",mantener la información del catálogo actualizada y precisa,4,Actualización de stock de un producto,Dado que el administrador abre la edición de un producto con stock bajo,Cuando modifica el campo stock y guarda los cambios,"Entonces el sistema actualiza el stock en tiempo real; si la nueva cantidad es mayor a cero, el producto se muestra disponible en el catálogo"
+,,,,,,,,,,
+EC-010,Informes admin,BAJA,Administrador,"visualizar informes y estadísticas de ventas, productos más vendidos y actividad de usuarios dentro de un rango de fechas",tomar decisiones estratégicas basadas en datos reales del negocio,1,Generación de informe de ventas por rango de fechas,Dado que el administrador accede a la sección de informes y selecciona un rango de fechas válido,Cuando hace clic en 'Generar informe',"Entonces el sistema muestra: total de pedidos, ingresos totales, ticket promedio y un gráfico de ventas diarias dentro del periodo seleccionado"
+,,,Administrador,"visualizar informes y estadísticas de ventas, productos más vendidos y actividad de usuarios dentro de un rango de fechas",tomar decisiones estratégicas basadas en datos reales del negocio,2,Listado de productos más vendidos,Dado que el administrador está en la sección de informes,Cuando selecciona la vista 'Productos más vendidos',"Entonces se muestra una tabla con los 10 productos con mayor número de unidades vendidas, incluyendo nombre, unidades vendidas e ingresos generados, ordenados de mayor a menor"
+,,,Administrador,"visualizar informes y estadísticas de ventas, productos más vendidos y actividad de usuarios dentro de un rango de fechas",tomar decisiones estratégicas basadas en datos reales del negocio,3,Exportación del informe en formato Excel,Dado que el administrador ha generado un informe con datos,Cuando hace clic en el botón 'Exportar a Excel',"Entonces el sistema descarga automáticamente un archivo .xlsx con los datos del informe (fechas, pedidos, ingresos, productos), estructurado en columnas con encabezados"
+,,,Administrador,"visualizar informes y estadísticas de ventas, productos más vendidos y actividad de usuarios dentro de un rango de fechas",tomar decisiones estratégicas basadas en datos reales del negocio,4,Informe sin datos en el rango seleccionado,Dado que el administrador selecciona un rango de fechas en el que no hubo ventas,Cuando hace clic en 'Generar informe',Entonces el sistema muestra el mensaje 'No hay datos de ventas para el período seleccionado' sin generar gráficos ni tablas
+,,,,,,,,,,
+EC-011,Gestion de Datos de usuario,BAJA,"Usuario comercial
+",Cambiar contraseña del perfil - aplica para todas las pantallas ,Cambiar contraseña,1,Cambiar contraseña ,"El usuario debe presionar en el icono de la parte superior derecha, donde se encuentra el popup de informacion del mismo, y luego presionar al boton de restablecer contraseña","Cliente presiona boton de popup informacion, luego presiona boton de restablecer contraseña","El usuario da clic en cambiar contraseña y debe desplegarse un popup con los siguientes campos y botones. 
+1. Un icono de la x, al dar clic aquí debe retornarlo a la pagina anterior. 
+2. Campo para digitar la contraseña actual
+3. Campo para digitar contraseña Nueva
+4. Campo para repetir contraseña nueva
+
+Al dar clic en el boteon de cambiar debe el sistema validar las siguientes restricciones. si infrige con alguna de estas debe mostrarse en el popup para que el usuaeio la corrija y pueda cambiar la contraseña
+1. La contrasena actual debe ser correcta. 
+2. La contraseña nueva debe, tener minímo 8 caracteres máx 24.mínimo 1 mayuscula, una minuscula y un caracter especial. 
+3. La contraseña que se repite debe ser exactamente igual a la nueva, si no es igual indicarlo.
+
+Si cumple con las anteriores restricciones, al dar clic en cambiar debe salir otro popup que diga que su contraseña se ha cambiado con éxito, y al dar clic en el botón de ok. saque al usuario al login para que ingrese nuevamente. "
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+EC-012,Carrito de Compras,ALTO,"Usuario comercial
+",Carrito de Compras,"Permitir al usuario comercial seleccionar varios productos y gestionarlos antes de realizar la compra, agilizando el proceso de adquisición y evitando errores al comprar productos de manera individual.",1,Agregar productos al carrito y gestionar cantidades,"El usuario comercial está navegando en el catálogo de productos disponibles para la venta y desea seleccionar varios productos para comprarlos en un solo pedido.
+","Usuario hace clic en el botón “Agregar al carrito""
+","1. El sistema agrega los productos seleccionados al carrito.
+
+2. El usuario puede ver la lista de productos agregados con sus cantidades y precios.
+
+3. El usuario puede actualizar la cantidad de cada producto o eliminarlo del carrito.
+
+4. El carrito refleja automáticamente el total actualizado de la compra."
