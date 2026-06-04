@@ -1,26 +1,26 @@
-// EC-008 — Publicar notificación
+// EC-008 — Publicar producto
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../../shared/components/Layout';
 import { MOCK_CATEGORIES } from '../../../shared/mockData';
 import { useCategoriasStore } from '../../../stores/categoriasStore';
-import { useNotificacionesStore } from '../../../stores/notificacionesStore';
+import { useProductosStore } from '../../../stores/productosStore';
 
 export default function PublishPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: '', category: '', price: '', originalPrice: '',
-    description: '', sku: '', stock: '',
+    description: '', sku: '', stock: '', marca: '',
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const categorias = useCategoriasStore((s) => s.categorias);
   const fetchCategorias = useCategoriasStore((s) => s.fetchCategorias);
-  const crearNotificacion = useNotificacionesStore((s) => s.crearNotificacion);
+  const crearProducto = useProductosStore((s) => s.crearProducto);
 
   useEffect(() => {
-    fetchCategorias();
+    fetchCategorias('productos');
   }, [fetchCategorias]);
 
   const categoryOptions = useMemo(
@@ -36,8 +36,12 @@ export default function PublishPage() {
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setImagePreview(url);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setImagePreview(base64);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -46,23 +50,30 @@ export default function PublishPage() {
     setLoading(true);
     try {
       const seleccionada = categorias.find((c) => c.nombre === form.category);
-      await crearNotificacion({
-        asunto: form.name,
+      await crearProducto({
+        nombre: form.name,
         descripcion: form.description,
+        precio: form.price,
+        precioOriginal: form.originalPrice || undefined,
         categoria_id: seleccionada?.id ?? form.category,
-        adjunto: imagePreview ?? undefined,
+        stock: Number(form.stock),
+        sku: form.sku || undefined,
+        marca: form.marca || undefined,
+        imagen: imagePreview || undefined,
       });
       navigate('/management');
-    } catch {
-      // Si falla, se mantiene al usuario en el formulario.
+    } catch (error) {
+      alert('Error al publicar: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
-  const isComplete = Object.entries(form)
-    .filter(([k]) => k !== 'originalPrice' && k !== 'sku')
-    .every(([, v]) => v.trim() !== '');
+  const isComplete = form.name.trim() !== '' &&
+    form.category.trim() !== '' &&
+    form.price.trim() !== '' &&
+    form.description.trim() !== '' &&
+    form.stock.trim() !== '';
 
   return (
     <Layout>
@@ -127,6 +138,18 @@ export default function PublishPage() {
                     ))}
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Marca (opcional)</label>
+                  <input
+                    type="text"
+                    value={form.marca}
+                    onChange={update('marca')}
+                    placeholder="Ej: Samsung, Apple"
+                    className="input-field"
+                  />
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">SKU (opcional)</label>
                   <input

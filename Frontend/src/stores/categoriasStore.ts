@@ -7,7 +7,7 @@ interface CategoriasState {
   categorias: Categoria[];
   loading: boolean;
   error: string | null;
-  fetchCategorias: () => Promise<void>;
+  fetchCategorias: (tipo?: string) => Promise<void>;
 }
 
 export const useCategoriasStore = create<CategoriasState>((set) => ({
@@ -15,10 +15,10 @@ export const useCategoriasStore = create<CategoriasState>((set) => ({
   loading: false,
   error: null,
 
-  fetchCategorias: async () => {
+  fetchCategorias: async (tipo?: string) => {
     set({ loading: true, error: null });
     try {
-      const categorias = await categoriasService.getCategorias();
+      const categorias = await categoriasService.getCategorias(tipo);
       set({ categorias, loading: false });
     } catch (err) {
       set({ error: (err as Error).message, loading: false });

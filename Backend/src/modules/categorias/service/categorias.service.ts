@@ -10,10 +10,24 @@ export class CategoriasService {
         this.repo = new CategoriasRepository();
     }
 
-    // Lista todas las categorias
-    async listar(): Promise<iCategoriaPublica[]> {
+    // Lista categorias (filtra por tipo si se proporciona)
+    async listar(tipo?: string): Promise<iCategoriaPublica[]> {
         const categorias = await this.repo.listar();
-        return categorias.map((c) => this.mapear(c));
+        const mapedas = categorias.map((c) => this.mapear(c));
+
+        if (!tipo) return mapedas;
+
+        const productCategoryNames = ["Electrónica", "Smartphones", "Computadoras", "Accesorios"];
+        const notificationCategoryNames = ["Peticiones", "Quejas", "Sugerencias", "Reclamos", "Informacion"];
+
+        if (tipo.toLowerCase() === "productos") {
+            return mapedas.filter(c => productCategoryNames.includes(c.nombre));
+        }
+        if (tipo.toLowerCase() === "notificaciones") {
+            return mapedas.filter(c => notificationCategoryNames.includes(c.nombre));
+        }
+
+        return mapedas;
     }
 
     // Crea una categoria validando nombre unico

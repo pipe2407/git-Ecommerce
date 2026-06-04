@@ -1,6 +1,7 @@
 // Navbar premium — glassmorphism, search bar, categorías y carrito
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useCarritoStore } from '../../stores/carritoStore';
 
 const NAV_LINKS = [
   { to: '/catalog',                    label: 'Catálogo',      icon: '🏠', roles: ['all'] },
@@ -20,6 +21,8 @@ export default function Navbar() {
   const [scrolled,  setScrolled]  = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
+  const items = useCarritoStore((s) => s.items);
+  const cartCount = items.length;
 
   // Verificar si hay sesión
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
@@ -156,13 +159,15 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span style={{
-                  position: 'absolute', top: -4, right: -4,
-                  width: 18, height: 18, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #0099cc, #7c3aed)',
-                  fontSize: '0.65rem', fontWeight: 700, color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>3</span>
+                {cartCount > 0 && (
+                  <span style={{
+                    position: 'absolute', top: -4, right: -4,
+                    width: 18, height: 18, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #0099cc, #7c3aed)',
+                    fontSize: '0.65rem', fontWeight: 700, color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>{cartCount}</span>
+                )}
               </Link>
 
               {/* Auth buttons — desktop */}
@@ -347,7 +352,7 @@ export default function Navbar() {
           <Link to="/cart" onClick={() => setMenuOpen(false)}
             className="btn-ghost w-full text-center"
             style={{ borderRadius: 12, padding: '11px 20px', fontSize: '0.875rem' }}>
-            🛒 Carrito (3)
+            🛒 Carrito ({cartCount})
           </Link>
           {isAuthenticated ? (
              <button onClick={handleLogout}

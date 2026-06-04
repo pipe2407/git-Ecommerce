@@ -5,8 +5,8 @@ import { autorizar } from "../../../middleware/autorizacion";
 
 const categoriasRoutes = Router();
 
-// GET /categorias -> listar (requiere autenticacion)
-categoriasRoutes.get("/", autenticar, listarCategorias);
+// GET /categorias -> listar (público)
+categoriasRoutes.get("/", listarCategorias);
 // POST /categorias -> crear (solo admin u operario)
 categoriasRoutes.post("/", autenticar, autorizar(["admin", "operario"]), crearCategoria);
 

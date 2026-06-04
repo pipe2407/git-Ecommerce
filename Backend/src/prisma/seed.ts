@@ -57,17 +57,29 @@ async function main() {
     console.log("Usuarios creados (password de todos: 123456).");
 
     // ---------------------------------------------------------------
-    // 3. CATEGORIAS
+    // 3. CATEGORIAS (Notificaciones y Productos)
     // ---------------------------------------------------------------
-    const categoriasData = ["Peticiones", "Quejas", "Sugerencias", "Reclamos", "Informacion"];
-    const categorias: bigint[] = [];
-    for (const nombre of categoriasData) {
+    const categoriasData = [
+        // Categorías de Notificaciones
+        { nombre: "Peticiones", descripcion: "Peticiones, quejas, sugerencias" },
+        { nombre: "Quejas", descripcion: "Categoría de quejas" },
+        { nombre: "Sugerencias", descripcion: "Categoría de sugerencias" },
+        { nombre: "Reclamos", descripcion: "Categoría de reclamos" },
+        { nombre: "Informacion", descripcion: "Información general" },
+        // Categorías de Productos
+        { nombre: "Electrónica", descripcion: "Productos electrónicos" },
+        { nombre: "Smartphones", descripcion: "Teléfonos móviles" },
+        { nombre: "Computadoras", descripcion: "Laptops y computadoras" },
+        { nombre: "Accesorios", descripcion: "Accesorios electrónicos" },
+    ];
+    const categorias: Record<string, bigint> = {};
+    for (const cat of categoriasData) {
         const creada = await prismaClient.categoria.upsert({
-            where: { nombre },
-            update: {},
-            create: { nombre },
+            where: { nombre: cat.nombre },
+            update: { descripcion: cat.descripcion },
+            create: { nombre: cat.nombre, descripcion: cat.descripcion },
         });
-        categorias.push(creada.id);
+        categorias[cat.nombre] = creada.id;
     }
     console.log("Categorias creadas.");
 
@@ -107,6 +119,7 @@ async function main() {
     const totalExistentes = await prismaClient.modulonotificaciones.count();
     if (totalExistentes === 0) {
         const remitentes = [usuarios["operario@test.com"], usuarios["admin@test.com"]];
+        const categoriasNotificaciones = ["Peticiones", "Quejas", "Sugerencias", "Reclamos", "Informacion"];
         const notificaciones = [];
         for (let i = 1; i <= 10; i++) {
             notificaciones.push({
@@ -114,7 +127,7 @@ async function main() {
                 descripcion: `Descripcion detallada de la notificacion numero ${i} generada por el seed.`,
                 tipo_id: tipos[i % tipos.length],
                 estado_id: estados[i % estados.length],
-                categoria_id: categorias[i % categorias.length],
+                categoria_id: categorias[categoriasNotificaciones[i % categoriasNotificaciones.length]],
                 usuario_id: remitentes[i % remitentes.length],
                 trimestre: ((i - 1) % 4) + 1,
                 anioReporte: 2026,

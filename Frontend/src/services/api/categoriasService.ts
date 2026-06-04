@@ -3,9 +3,9 @@ import api, { extraerMensajeError } from './axiosConfig';
 import type { Categoria } from '../../types';
 
 export const categoriasService = {
-  async getCategorias(): Promise<Categoria[]> {
+  async getCategorias(tipo?: string): Promise<Categoria[]> {
     try {
-      const { data } = await api.get('/categorias');
+      const { data } = await api.get('/categorias', { params: tipo ? { tipo } : {} });
       if (Array.isArray(data)) return data as Categoria[];
       const obj = data as { data?: unknown; categorias?: unknown };
       if (Array.isArray(obj?.data)) return obj.data as Categoria[];

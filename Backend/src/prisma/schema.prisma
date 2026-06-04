@@ -25,6 +25,8 @@ model usuarios {
   respuestas             hiloRespuestaNotificacion[]
   destinatarios          notificacionesvsdestinatario[]
   auditoria              auditoria[]
+  productosPublicados    productos[]                    @relation("productosPublicados")
+  ordenesComprador       ordenes[]                      @relation("ordenesComprador")
 }
 
 model roles {
@@ -109,6 +111,7 @@ model categoria {
   fechaModificacion DateTime @updatedAt
 
   notificaciones modulonotificaciones[]
+  productos      productos[]
 }
 
 model hiloRespuestaNotificacion {
@@ -148,4 +151,53 @@ model auditoria {
   fechaCreacion DateTime @default(now())
 
   usuario usuarios @relation(fields: [usuario_id], references: [id])
+}
+
+// ============================================================
+// PRODUCTOS & COMPRAS
+// ============================================================
+model productos {
+  id                BigInt   @id @default(autoincrement())
+  nombre            String   @db.VarChar(200)
+  descripcion       String
+  precio            Decimal  @db.Decimal(12, 2)
+  precioOriginal    Decimal? @db.Decimal(12, 2)
+  imagen            String?
+  categoria_id      BigInt
+  usuario_id        BigInt
+  stock             Int      @default(0)
+  estado            Boolean  @default(true)
+  sku               String?  @db.VarChar(100)
+  marca             String?  @db.VarChar(100)
+  fechaCreacion     DateTime @default(now())
+  fechaModificacion DateTime @updatedAt
+
+  categoria categoria    @relation(fields: [categoria_id], references: [id])
+  publicador usuarios    @relation("productosPublicados", fields: [usuario_id], references: [id])
+  ordenes   ordenes[]
+}
+
+model ordenes {
+  id                  BigInt   @id @default(autoincrement())
+  producto_id         BigInt
+  comprador_id        BigInt
+  cantidad            Int      @default(1)
+  precioTotal         Decimal  @db.Decimal(12, 2)
+  estado              String   @default("pendiente") @db.VarChar(50)
+  nombreComprador     String?  @db.VarChar(200)
+  emailComprador      String?  @db.VarChar(200)
+  direccion           String?
+  ciudad              String?  @db.VarChar(100)
+  departamento        String?  @db.VarChar(100)
+  codigoPostal        String?  @db.VarChar(20)
+  telefonoComprador   String?  @db.VarChar(20)
+  metodoPago          String?  @db.VarChar(50)
+  numeroTarjeta       String?  @db.VarChar(20)
+  nombreTitular       String?  @db.VarChar(200)
+  fechaVencimiento    String?  @db.VarChar(5)
+  fechaCreacion       DateTime @default(now())
+  fechaModificacion   DateTime @updatedAt
+
+  producto  productos @relation(fields: [producto_id], references: [id], onDelete: Cascade)
+  comprador usuarios  @relation("ordenesComprador", fields: [comprador_id], references: [id])
 }
