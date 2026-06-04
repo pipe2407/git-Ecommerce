@@ -1,9 +1,12 @@
-// EC-004 — Catálogo de productos con filtros por categoría y búsqueda
-import { useState, useMemo } from 'react';
+// EC-004 — Catálogo de notificaciones con filtros por categoría y búsqueda
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../../shared/components/Layout';
 import ProductCard from '../../../shared/components/ProductCard';
-import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '../../../shared/mockData';
+import { MOCK_CATEGORIES } from '../../../shared/mockData';
+import { useNotificacionesStore } from '../../../stores/notificacionesStore';
+import { useCategoriasStore } from '../../../stores/categoriasStore';
+import { notificacionesToProducts } from '../../../shared/adapters';
 
 type SortKey = 'default' | 'price-asc' | 'price-desc' | 'rating';
 
@@ -22,8 +25,28 @@ export default function CatalogPage() {
   const [sort, setSort] = useState<SortKey>('default');
   const [cartCount, setCartCount] = useState(0);
 
+  const notificaciones = useNotificacionesStore((s) => s.notificaciones);
+  const fetchNotificaciones = useNotificacionesStore((s) => s.fetchNotificaciones);
+  const categorias = useCategoriasStore((s) => s.categorias);
+  const fetchCategorias = useCategoriasStore((s) => s.fetchCategorias);
+
+  // Carga de notificaciones desde la API según los filtros activos.
+  useEffect(() => {
+    fetchNotificaciones({ categoria: category !== 'Todos' ? category : undefined, search, sort });
+  }, [search, category, sort, fetchNotificaciones]);
+
+  // Carga de categorías reales (con fallback a MOCK_CATEGORIES).
+  useEffect(() => {
+    fetchCategorias();
+  }, [fetchCategorias]);
+
+  const categoryChips = useMemo(() => {
+    if (categorias.length > 0) return ['Todos', ...categorias.map((c) => c.nombre)];
+    return MOCK_CATEGORIES;
+  }, [categorias]);
+
   const filtered = useMemo(() => {
-    let list = [...MOCK_PRODUCTS];
+    let list = notificacionesToProducts(notificaciones);
     if (category !== 'Todos') list = list.filter(p => p.category === category);
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -33,7 +56,7 @@ export default function CatalogPage() {
     if (sort === 'price-desc') list.sort((a, b) => b.price - a.price);
     if (sort === 'rating')     list.sort((a, b) => b.rating - a.rating);
     return list;
-  }, [search, category, sort]);
+  }, [notificaciones, search, category, sort]);
 
   return (
     <Layout>
@@ -112,7 +135,7 @@ export default function CatalogPage() {
 
         {/* Category chips */}
         <div className="flex gap-2 flex-wrap mb-8">
-          {MOCK_CATEGORIES.map(cat => (
+          {categoryChips.map(cat => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}

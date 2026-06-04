@@ -1,8 +1,10 @@
-// EC-007 — Historial de pedidos del usuario
+// EC-007 — Historial de notificaciones del usuario
+import { useEffect, useMemo } from 'react';
 import Layout from '../../../shared/components/Layout';
-import { MOCK_ORDERS } from '../../../shared/mockData';
 import type { Order } from '../../../shared/mockData';
 import { Link } from 'react-router-dom';
+import { useNotificacionesStore } from '../../../stores/notificacionesStore';
+import authService from '../../../services/api/authService';
 
 const STATUS_CONFIG: Record<Order['status'], { label: string; badge: string; icon: string }> = {
   entregado:  { label: 'Entregado',   badge: 'badge-success', icon: '✅' },
@@ -11,7 +13,36 @@ const STATUS_CONFIG: Record<Order['status'], { label: string; badge: string; ico
   cancelado:  { label: 'Cancelado',   badge: 'badge-danger',  icon: '❌' },
 };
 
+// Mapea el estado de una notificación a uno de los estados visuales de "pedido".
+function mapEstado(nombre?: string): Order['status'] {
+  const e = (nombre ?? '').toLowerCase();
+  if (e.includes('cerr') || e.includes('resuel') || e.includes('entreg')) return 'entregado';
+  if (e.includes('proces') || e.includes('pend')) return 'procesando';
+  if (e.includes('cancel') || e.includes('rechaz')) return 'cancelado';
+  return 'en_camino';
+}
+
 export default function HistoryPage() {
+  const notificaciones = useNotificacionesStore((s) => s.notificaciones);
+  const fetchNotificaciones = useNotificacionesStore((s) => s.fetchNotificaciones);
+
+  useEffect(() => {
+    const usuario = authService.getStoredUser();
+    fetchNotificaciones(usuario?.id ? { usuario_id: usuario.id } : undefined);
+  }, [fetchNotificaciones]);
+
+  // Construye el historial con la forma `Order` para reutilizar la UI existente.
+  const orders: Order[] = useMemo(
+    () => notificaciones.map((n) => ({
+      id: String(n.id),
+      date: n.fechaCreacion ?? new Date().toISOString(),
+      status: mapEstado(n.estado?.nombre),
+      total: 0,
+      items: [{ name: n.asunto, qty: 1, price: 0 }],
+    })),
+    [notificaciones]
+  );
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -21,7 +52,7 @@ export default function HistoryPage() {
             <h1 className="text-3xl font-bold text-white" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
               Mis Pedidos
             </h1>
-            <p className="text-slate-500 mt-1">{MOCK_ORDERS.length} pedidos en tu historial</p>
+            <p className="text-slate-500 mt-1">{orders.length} pedidos en tu historial</p>
           </div>
           <Link to="/catalog" className="btn-ghost text-sm px-5 py-2.5">
             Seguir comprando
@@ -31,12 +62,12 @@ export default function HistoryPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
           {[
-            { label: 'Total pedidos', value: MOCK_ORDERS.length, icon: '📦' },
-            { label: 'Entregados',    value: MOCK_ORDERS.filter(o => o.status === 'entregado').length, icon: '✅' },
-            { label: 'En camino',     value: MOCK_ORDERS.filter(o => o.status === 'en_camino').length, icon: '🚚' },
+            { label: 'Total pedidos', value: orders.length, icon: '📦' },
+            { label: 'Entregados',    value: orders.filter(o => o.status === 'entregado').length, icon: '✅' },
+            { label: 'En camino',     value: orders.filter(o => o.status === 'en_camino').length, icon: '🚚' },
             {
               label: 'Total gastado',
-              value: `$${MOCK_ORDERS.reduce((a, o) => a + o.total, 0).toLocaleString('es-CO')}`,
+              value: `$${orders.reduce((a, o) => a + o.total, 0).toLocaleString('es-CO')}`,
               icon: '💰',
             },
           ].map(s => (
@@ -50,7 +81,7 @@ export default function HistoryPage() {
 
         {/* Orders list */}
         <div className="space-y-4">
-          {MOCK_ORDERS.map(order => {
+          {orders.map(order => {
             const cfg = STATUS_CONFIG[order.status];
             return (
               <div key={order.id} className="glass rounded-2xl overflow-hidden card-hover">

@@ -1,8 +1,9 @@
-// EC-009 — Gestión de publicaciones del vendedor
-import { useState } from 'react';
+// EC-009 — Gestión de notificaciones del usuario
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../../shared/components/Layout';
-import { MOCK_PRODUCTS } from '../../../shared/mockData';
+import { useNotificacionesStore } from '../../../stores/notificacionesStore';
+import authService from '../../../services/api/authService';
 
 type ListingStatus = 'activo' | 'pausado' | 'agotado';
 
@@ -17,17 +18,6 @@ interface Listing {
   status: ListingStatus;
 }
 
-const INITIAL_LISTINGS: Listing[] = MOCK_PRODUCTS.slice(0, 5).map((p, i) => ({
-  id: p.id,
-  name: p.name,
-  image: p.image,
-  price: p.price,
-  category: p.category,
-  stock: p.inStock ? (i === 1 ? 3 : Math.floor(Math.random() * 20) + 5) : 0,
-  sales: Math.floor(Math.random() * 100) + 10,
-  status: p.inStock ? (i % 3 === 0 ? 'pausado' : 'activo') : 'agotado',
-}));
-
 const STATUS_CONFIG: Record<ListingStatus, { label: string; badge: string }> = {
   activo:  { label: 'Activo',   badge: 'badge-success' },
   pausado: { label: 'Pausado',  badge: 'badge-warning' },
@@ -35,19 +25,50 @@ const STATUS_CONFIG: Record<ListingStatus, { label: string; badge: string }> = {
 };
 
 export default function ManagementPage() {
-  const [listings, setListings] = useState<Listing[]>(INITIAL_LISTINGS);
   const [filter, setFilter] = useState<ListingStatus | 'todos'>('todos');
 
+  const notificaciones = useNotificacionesStore((s) => s.notificaciones);
+  const fetchNotificaciones = useNotificacionesStore((s) => s.fetchNotificaciones);
+  const actualizarNotificacion = useNotificacionesStore((s) => s.actualizarNotificacion);
+  const eliminarNotificacion = useNotificacionesStore((s) => s.eliminarNotificacion);
+
+  // Listar notificaciones del usuario autenticado.
+  useEffect(() => {
+    const usuario = authService.getStoredUser();
+    fetchNotificaciones(usuario?.id ? { usuario_id: usuario.id } : undefined);
+  }, [fetchNotificaciones]);
+
+  // Mapea las notificaciones de la API a la forma `Listing` que consume la tabla.
+  const listings: Listing[] = useMemo(
+    () => notificaciones.map((n) => {
+      const estado = (n.estado?.nombre ?? '').toLowerCase();
+      const status: ListingStatus =
+        estado.includes('paus') ? 'pausado'
+        : estado.includes('agot') || estado.includes('cerr') ? 'agotado'
+        : 'activo';
+      return {
+        id: Number(n.id),
+        name: n.asunto,
+        image: n.adjunto ?? `https://picsum.photos/seed/notif${n.id}/80/80`,
+        price: 0,
+        category: n.categoria?.nombre ?? n.tipo?.nombre ?? 'General',
+        stock: 0,
+        sales: n.respuestas?.length ?? 0,
+        status,
+      };
+    }),
+    [notificaciones]
+  );
+
   const toggleStatus = (id: number) => {
-    setListings(prev => prev.map(l =>
-      l.id === id
-        ? { ...l, status: l.status === 'activo' ? 'pausado' : 'activo' }
-        : l
-    ));
+    const actual = listings.find((l) => l.id === id);
+    if (!actual) return;
+    const nuevoEstado = actual.status === 'activo' ? 'pausado' : 'activo';
+    actualizarNotificacion(id, { estado: { id: 0, nombre: nuevoEstado } }).catch(() => {});
   };
 
   const deleteListing = (id: number) => {
-    setListings(prev => prev.filter(l => l.id !== id));
+    eliminarNotificacion(id).catch(() => {});
   };
 
   const filtered = filter === 'todos' ? listings : listings.filter(l => l.status === filter);

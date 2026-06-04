@@ -1,8 +1,11 @@
-// EC-004b — Detalle del producto
-import { useState } from 'react';
+// EC-004b — Detalle de la notificación
+import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../../shared/components/Layout';
-import { MOCK_PRODUCTS } from '../../../shared/mockData';
+import { useNotificacionesStore } from '../../../stores/notificacionesStore';
+import notificacionesService from '../../../services/api/notificacionesService';
+import { notificacionToProduct, notificacionesToProducts } from '../../../shared/adapters';
+import type { Respuesta } from '../../../types';
 
 function Stars({ rating, large }: { rating: number; large?: boolean }) {
   const size = large ? 'w-5 h-5' : 'w-4 h-4';
@@ -20,9 +23,41 @@ function Stars({ rating, large }: { rating: number; large?: boolean }) {
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const product = MOCK_PRODUCTS.find(p => p.id === Number(id));
+  const detalle = useNotificacionesStore((s) => s.notificacionDetalle);
+  const fetchNotificacion = useNotificacionesStore((s) => s.fetchNotificacion);
+  const notificaciones = useNotificacionesStore((s) => s.notificaciones);
+  const loading = useNotificacionesStore((s) => s.loading);
+
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [respuestas, setRespuestas] = useState<Respuesta[]>([]);
+  const [nuevaRespuesta, setNuevaRespuesta] = useState('');
+  const [enviandoRespuesta, setEnviandoRespuesta] = useState(false);
+
+  useEffect(() => {
+    if (id) fetchNotificacion(id);
+  }, [id, fetchNotificacion]);
+
+  // Cargar respuestas (hilo) de la notificación.
+  useEffect(() => {
+    if (!id) return;
+    notificacionesService
+      .getRespuestas(id)
+      .then(setRespuestas)
+      .catch(() => setRespuestas([]));
+  }, [id]);
+
+  const product = detalle ? notificacionToProduct(detalle) : null;
+
+  if (loading && !product) {
+    return (
+      <Layout>
+        <div className="min-h-[60vh] flex items-center justify-center text-slate-400">
+          Cargando...
+        </div>
+      </Layout>
+    );
+  }
 
   if (!product) {
     return (
@@ -38,11 +73,27 @@ export default function ProductDetailPage() {
   }
 
   const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
-  const related = MOCK_PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 3);
+  const related = notificacionesToProducts(notificaciones)
+    .filter(p => p.category === product.category && p.id !== product.id)
+    .slice(0, 3);
 
   const handleAddToCart = () => {
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleAgregarRespuesta = async () => {
+    if (!id || !nuevaRespuesta.trim()) return;
+    setEnviandoRespuesta(true);
+    try {
+      const creada = await notificacionesService.agregarRespuesta(id, nuevaRespuesta.trim());
+      setRespuestas((prev) => [...prev, creada]);
+      setNuevaRespuesta('');
+    } catch {
+      // El error se ignora silenciosamente para no romper la UI.
+    } finally {
+      setEnviandoRespuesta(false);
+    }
   };
 
   return (
@@ -190,6 +241,48 @@ export default function ProductDetailPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Respuestas / Hilo de la notificación */}
+        <div className="mt-16">
+          <div className="section-divider" />
+          <h2 className="text-2xl font-bold text-white mb-6" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            Respuestas
+          </h2>
+          {respuestas.length > 0 ? (
+            <div className="space-y-3 mb-6">
+              {respuestas.map((r) => (
+                <div key={String(r.id)} className="glass rounded-2xl p-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-semibold text-white">{r.usuario?.nombre ?? 'Usuario'}</span>
+                    <span className="text-xs text-slate-500">
+                      {r.fechaCreacion ? new Date(r.fechaCreacion).toLocaleString('es-CO') : ''}
+                    </span>
+                  </div>
+                  <p className="text-slate-300 text-sm">{r.mensaje}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-slate-500 text-sm mb-6">Aún no hay respuestas.</p>
+          )}
+
+          <div className="glass rounded-2xl p-4">
+            <textarea
+              value={nuevaRespuesta}
+              onChange={(e) => setNuevaRespuesta(e.target.value)}
+              placeholder="Escribe una respuesta..."
+              rows={3}
+              className="input-field resize-none mb-3"
+            />
+            <button
+              onClick={handleAgregarRespuesta}
+              disabled={enviandoRespuesta || !nuevaRespuesta.trim()}
+              className="btn-primary px-6 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {enviandoRespuesta ? 'Enviando...' : 'Agregar respuesta'}
+            </button>
           </div>
         </div>
 

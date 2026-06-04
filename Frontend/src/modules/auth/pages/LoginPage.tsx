@@ -1,18 +1,20 @@
 // EC-002 — Login de usuario
-// Simulación: acepta cualquier email/contraseña y redirige al catálogo
+// Conectado al backend vía authStore (POST /auth/login).
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../../stores/authStore';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const login = useAuthStore((s) => s.login);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -25,17 +27,19 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    // Simulación de login (sin backend)
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userRole', 'buyer'); // Rol por defecto
+    try {
+      await login(email, password);
       navigate('/catalog');
-    }, 1200);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleMockLogin = (role: string) => {
+    // Acceso rápido de demostración (sin backend) — mantiene la UX previa.
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('userRole', role);
     navigate(role === 'admin' ? '/admin/users' : '/catalog');

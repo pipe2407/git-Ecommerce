@@ -1,13 +1,15 @@
 // EC-001 — Registro de usuario
-// Simulación: valida campos y redirige al login con mensaje de éxito
+// Conectado al backend vía authStore (POST /auth/register).
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../../stores/authStore';
 
 type Role = 'comprador' | 'vendedor';
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const register = useAuthStore((s) => s.register);
   const [role, setRole] = useState<Role>('comprador');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -30,7 +32,7 @@ const RegisterPage: React.FC = () => {
   const strengthLabel = ['', 'Débil', 'Regular', 'Fuerte', 'Muy fuerte'][strength];
   const strengthColor = ['', 'bg-red-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'][strength];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!name || !email || !password || !confirm) {
@@ -51,10 +53,14 @@ const RegisterPage: React.FC = () => {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await register({ nombre: name, email, password, rol: role });
       navigate('/login');
-    }, 1400);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

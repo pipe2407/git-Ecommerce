@@ -1,8 +1,10 @@
-// EC-008 — Publicar producto (vendedor)
-import { useState } from 'react';
+// EC-008 — Publicar notificación
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../../shared/components/Layout';
 import { MOCK_CATEGORIES } from '../../../shared/mockData';
+import { useCategoriasStore } from '../../../stores/categoriasStore';
+import { useNotificacionesStore } from '../../../stores/notificacionesStore';
 
 export default function PublishPage() {
   const navigate = useNavigate();
@@ -12,6 +14,21 @@ export default function PublishPage() {
     description: '', sku: '', stock: '',
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const categorias = useCategoriasStore((s) => s.categorias);
+  const fetchCategorias = useCategoriasStore((s) => s.fetchCategorias);
+  const crearNotificacion = useNotificacionesStore((s) => s.crearNotificacion);
+
+  useEffect(() => {
+    fetchCategorias();
+  }, [fetchCategorias]);
+
+  const categoryOptions = useMemo(
+    () => (categorias.length > 0
+      ? categorias.map((c) => c.nombre)
+      : MOCK_CATEGORIES.filter((c) => c !== 'Todos')),
+    [categorias]
+  );
 
   const update = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -24,13 +41,23 @@ export default function PublishPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const seleccionada = categorias.find((c) => c.nombre === form.category);
+      await crearNotificacion({
+        asunto: form.name,
+        descripcion: form.description,
+        categoria_id: seleccionada?.id ?? form.category,
+        adjunto: imagePreview ?? undefined,
+      });
+      navigate('/management');
+    } catch {
+      // Si falla, se mantiene al usuario en el formulario.
+    } finally {
       setLoading(false);
-      navigate('/my-listings');
-    }, 1500);
+    }
   };
 
   const isComplete = Object.entries(form)
@@ -95,7 +122,7 @@ export default function PublishPage() {
                   <label className="block text-sm font-medium text-slate-300 mb-2">Categoría *</label>
                   <select value={form.category} onChange={update('category')} className="input-field bg-[#13131a] cursor-pointer">
                     <option value="">Seleccionar...</option>
-                    {MOCK_CATEGORIES.filter(c => c !== 'Todos').map(c => (
+                    {categoryOptions.map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
@@ -174,7 +201,7 @@ export default function PublishPage() {
 
           {/* Submit */}
           <div className="flex flex-col sm:flex-row gap-3 justify-end">
-            <button type="button" onClick={() => navigate('/my-listings')} className="btn-ghost px-8">
+            <button type="button" onClick={() => navigate('/management')} className="btn-ghost px-8">
               Cancelar
             </button>
             <button

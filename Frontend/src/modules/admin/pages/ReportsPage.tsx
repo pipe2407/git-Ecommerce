@@ -1,16 +1,44 @@
-// EC-010 — Panel de informes de ventas (Admin)
+// EC-010 — Panel de informes (Admin) — conectado a /reportes
 
+import { useEffect, useMemo, useState } from 'react';
 import Layout from '../../../shared/components/Layout';
-
-const MOCK_BEST_SELLERS = [
-  { id: 1, name: 'RTX 4090 OC Edition', category: 'Componentes', units: 145, revenue: '$231,855' },
-  { id: 2, name: 'MacBook Pro M3 Max', category: 'Portátiles', units: 89, revenue: '$311,411' },
-  { id: 3, name: 'Monitor Odyssey Neo G9', category: 'Monitores', units: 210, revenue: '$419,790' },
-  { id: 4, name: 'Logitech G Pro X Superlight', category: 'Periféricos', units: 580, revenue: '$86,420' },
-  { id: 5, name: 'AMD Ryzen 9 7950X3D', category: 'Componentes', units: 310, revenue: '$216,690' },
-];
+import { useReportesStore } from '../../../stores/reportesStore';
+import reportesService from '../../../services/api/reportesService';
+import type { ReporteItem } from '../../../types';
 
 export default function ReportsPage() {
+  const resumen = useReportesStore((s) => s.resumen);
+  const fetchResumen = useReportesStore((s) => s.fetchResumen);
+  const [porTipo, setPorTipo] = useState<ReporteItem[]>([]);
+
+  useEffect(() => {
+    fetchResumen();
+    reportesService.getPorTipo().then(setPorTipo).catch(() => setPorTipo([]));
+  }, [fetchResumen]);
+
+  // Métricas derivadas del resumen real de la API (con fallback a 0).
+  const metricas = useMemo(
+    () => [
+      { title: 'Total Notificaciones', value: String(resumen?.totalNotificaciones ?? 0), icon: '📦', trend: '+0%' },
+      { title: 'Total Usuarios', value: String(resumen?.totalUsuarios ?? 0), icon: '👥', trend: '+0%' },
+      { title: 'Pendientes', value: String(resumen?.pendientes ?? 0), icon: '⏳', trend: '+0%' },
+      { title: 'Enviadas', value: String(resumen?.enviadas ?? 0), icon: '✅', trend: '+0%' },
+    ],
+    [resumen]
+  );
+
+  // Top por tipo, adaptado a la estructura visual previa.
+  const bestSellers = useMemo(
+    () => porTipo.map((item, i) => ({
+      id: i + 1,
+      name: item.nombre,
+      category: 'Notificaciones',
+      units: item.total,
+      revenue: String(item.total),
+    })),
+    [porTipo]
+  );
+
   return (
     <Layout>
       <div className="max-w-screen-xl mx-auto px-4 py-12 relative">
@@ -48,12 +76,7 @@ export default function ReportsPage() {
 
         {/* Resumen Métricas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          {[
-            { title: 'Ingresos Totales', value: '$1,266,166', icon: '💰', trend: '+14.5%' },
-            { title: 'Total Pedidos', value: '3,842', icon: '📦', trend: '+5.2%' },
-            { title: 'Ticket Promedio', value: '$329.50', icon: '🧾', trend: '-1.1%' },
-            { title: 'Nuevos Usuarios', value: '+840', icon: '👥', trend: '+22.4%' },
-          ].map((stat, i) => (
+          {metricas.map((stat, i) => (
             <div key={i} className="glass-card p-6 flex flex-col relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-10 text-5xl group-hover:scale-110 transition-transform duration-500">{stat.icon}</div>
               <p className="text-sm text-slate-400 font-medium mb-1 uppercase tracking-wider">{stat.title}</p>
@@ -110,7 +133,7 @@ export default function ReportsPage() {
             <p className="text-sm text-slate-400 mb-6">Por volumen de ingresos.</p>
 
             <div className="space-y-4">
-              {MOCK_BEST_SELLERS.map((product, idx) => (
+              {bestSellers.map((product, idx) => (
                 <div key={product.id} className="flex items-center gap-4 p-3 rounded-xl border border-white/5 hover:bg-white/[0.02] transition-colors">
                   <div className="w-8 h-8 rounded bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center font-bold text-slate-300 border border-white/10 shrink-0">
                     #{idx + 1}
