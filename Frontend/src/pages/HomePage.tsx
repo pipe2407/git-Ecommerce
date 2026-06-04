@@ -160,7 +160,17 @@ export default function HomePage() {
     return (p as any).inStock;
   }).slice(0, 8);
 
-  const newArrivals = MOCK_PRODUCTS.filter(p => p.isNew).slice(0, 4);
+  const newArrivals = (productos.length > 0 ? productos : MOCK_PRODUCTS)
+    .sort((a, b) => {
+      if (productos.length > 0) {
+        const dateA = new Date((a as any).fechaCreacion || 0).getTime();
+        const dateB = new Date((b as any).fechaCreacion || 0).getTime();
+        return dateB - dateA;
+      }
+      return 0;
+    })
+    .slice(0, 4);
+
   const hotDeals   = MOCK_PRODUCTS.filter(p => p.isHot || p.originalPrice).slice(0, 4);
 
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -663,11 +673,30 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-5">
-            {newArrivals.map(product => (
-              <Link key={product.id} to={`/product/${product.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-                <ProductCard {...product} />
-              </Link>
-            ))}
+            {newArrivals.map(product => {
+              const mapped = productos.length > 0 ? {
+                id: Number(product.id),
+                name: product.nombre,
+                price: product.precio,
+                originalPrice: product.precioOriginal,
+                image: product.imagen ? (product.imagen.startsWith('data:') ? product.imagen : product.imagen) : `https://picsum.photos/seed/prod${product.id}/600/600`,
+                rating: 0,
+                reviews: 0,
+                category: product.categoria?.nombre || 'General',
+                inStock: product.stock > 0,
+                description: product.descripcion,
+                sku: product.sku || String(product.id),
+                brand: product.marca,
+                isNew: true,
+                isHot: false,
+              } : product;
+
+              return (
+                <Link key={product.id} to={`/product/${product.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                  <ProductCard {...mapped} />
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
