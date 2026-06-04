@@ -1,5 +1,5 @@
 // EC-007 — Historial de órdenes del usuario
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '../../../shared/components/Layout';
 import { Link } from 'react-router-dom';
 import { useOrdenesStore } from '../../../stores/ordenesStore';
@@ -13,6 +13,7 @@ const STATUS_CONFIG: Record<string, { label: string; badge: string; icon: string
 };
 
 export default function HistoryPage() {
+  const [detallesAbiertoId, setDetallesAbiertoId] = useState<string | null>(null);
   const ordenes = useOrdenesStore((s) => s.ordenes);
   const fetchMisOrdenes = useOrdenesStore((s) => s.fetchMisOrdenes);
   const loading = useOrdenesStore((s) => s.loading);
@@ -129,10 +130,57 @@ export default function HistoryPage() {
                         🗺️ Rastrear envío
                       </button>
                     )}
-                    <button className="btn-ghost text-xs py-2 px-4">
-                      Ver detalles
+                    <button
+                      onClick={() => setDetallesAbiertoId(detallesAbiertoId === orden.id ? null : orden.id)}
+                      className="btn-ghost text-xs py-2 px-4">
+                      {detallesAbiertoId === orden.id ? 'Ocultar detalles' : 'Ver detalles'}
                     </button>
                   </div>
+
+                  {/* Detalles expandibles */}
+                  {detallesAbiertoId === orden.id && (
+                    <div className="px-5 py-4 bg-white/[0.02] border-t border-white/[0.05] space-y-3">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-slate-500 text-xs uppercase">Comprador</p>
+                          <p className="text-white font-medium">{orden.comprador.nombre}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 text-xs uppercase">Email</p>
+                          <p className="text-white font-medium">{orden.comprador.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 text-xs uppercase">Producto</p>
+                          <p className="text-white font-medium">{orden.producto.nombre}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 text-xs uppercase">Cantidad</p>
+                          <p className="text-white font-medium">{orden.cantidad} unidad(es)</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 text-xs uppercase">Precio Unitario</p>
+                          <p className="text-white font-medium">${orden.producto.precio.toLocaleString('es-CO')}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 text-xs uppercase">Total</p>
+                          <p className="text-purple-400 font-bold">${orden.precioTotal.toLocaleString('es-CO')}</p>
+                        </div>
+                      </div>
+                      <div className="text-sm">
+                        <p className="text-slate-500 text-xs uppercase mb-1">Fecha de orden</p>
+                        <p className="text-white">
+                          {new Date(orden.fechaCreacion).toLocaleDateString('es-CO', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

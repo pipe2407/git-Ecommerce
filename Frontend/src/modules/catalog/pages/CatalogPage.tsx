@@ -35,9 +35,14 @@ export default function CatalogPage() {
   useEffect(() => {
     const catParam = searchParams.get('cat');
     const filterParam = searchParams.get('filter');
+    const searchParam = searchParams.get('search');
 
     if (catParam) {
       setCategory(catParam);
+    }
+
+    if (searchParam) {
+      setSearch(searchParam);
     }
 
     if (filterParam === 'sale') {
