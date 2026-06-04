@@ -1,63 +1,128 @@
-import { compare } from "bcrypt";
-import { SignOptions, sign } from "jsonwebtoken";
-import { iUsuario } from "../../usuarios/Models/usuarios.model";
-import { iRolesPermisos, iTokensAcceso, payloadTokenUser } from "../Models/auth.model";
+import { hash, compare } from "bcrypt";
 import { env } from "../../../config/env";
 import { AuthRepository } from "../Repository/auth.repository";
+import { iLogin, iRegistro, iRespuestaLogin, iUsuarioPublico } from "../Models/auth.model";
+import { generarAccessToken, generarRefreshToken, verificarRefreshToken, PayloadToken } from "../../../utils/jwt";
+import { validarEmail, validarPassword, validarRequerido, aBigInt } from "../../../utils/validaciones";
+import { AppError, errorBadRequest, errorNoAutorizado } from "../../../utils/errores";
 
-export const autenticarUsuario = async (user:iUsuario, contrasenaLogin:string) => {
-    //Se valida la contrasena contra la hallada en base de datos
-    const contrasenaBD = user.contrasena;
-    const authRepository:AuthRepository = new AuthRepository();
+// Rol por defecto cuando un usuario se registra publicamente
+const ROL_POR_DEFECTO = "ciudadano";
 
-    try{
-        if(await compare(contrasenaLogin,contrasenaBD)){
-            //Consulta de los permisos asociados al usuario
-            let permisosUsuario:iRolesPermisos = await authRepository.consultarRolesUsuario(user);
-            //Generacion de tokens de sesion    
-            return generarTokens(user, permisosUsuario);
-        }else{
-            throw new Error('Credenciales invalidas');
+export class AuthService {
+    private authRepository: AuthRepository;
+
+    constructor() {
+        this.authRepository = new AuthRepository();
+    }
+
+    /**
+     * Login: valida credenciales y retorna tokens + datos publicos del usuario.
+     */
+    async login(credenciales: iLogin): Promise<iRespuestaLogin> {
+        validarRequerido(credenciales.email, "email");
+        validarRequerido(credenciales.password, "password");
+
+        const usuario = await this.authRepository.buscarPorEmail(credenciales.email);
+        if (!usuario || !usuario.estado) {
+            throw errorNoAutorizado("Credenciales invalidas");
         }
-    }catch(error){
-        throw new Error('Error validando el usuario. ' + error);
+
+        const passwordValida = await compare(credenciales.password, usuario.password);
+        if (!passwordValida) {
+            throw errorNoAutorizado("Credenciales invalidas");
+        }
+
+        const payload: PayloadToken = {
+            usuario_id: usuario.id.toString(),
+            email: usuario.email,
+            rol: usuario.rol.nombre,
+        };
+
+        return {
+            token: generarAccessToken(payload),
+            refreshToken: generarRefreshToken(payload),
+            usuario: this.mapearUsuarioPublico(usuario),
+        };
     }
-}
 
+    /**
+     * Registro: crea un usuario nuevo validando email unico y password.
+     */
+    async registrar(data: iRegistro): Promise<iUsuarioPublico> {
+        validarRequerido(data.nombre, "nombre");
+        validarEmail(data.email);
+        validarPassword(data.password);
 
-export const generarTokens = (user:iUsuario, permisos:iRolesPermisos):iTokensAcceso => {
-    const payloadToken: payloadTokenUser = {
-        nombre_usuario : user.primer_nombre + " " + user.segundo_nombre + " " + user.primer_apellido + " " + user.segundo_apellido,
-        identificacion : user.numero_identificacion,
-        permisos: null
+        const existente = await this.authRepository.buscarPorEmail(data.email);
+        if (existente) {
+            throw errorBadRequest("El email ya esta registrado");
+        }
+
+        // Resolver el rol: por id si llega, o el rol por defecto
+        let rolId: bigint;
+        if (data.rol_id !== undefined && data.rol_id !== null && `${data.rol_id}` !== "") {
+            rolId = aBigInt(data.rol_id, "rol_id");
+            const rol = await this.authRepository.buscarRolPorId(rolId);
+            if (!rol) {
+                throw errorBadRequest("El rol indicado no existe");
+            }
+        } else {
+            const rolDefecto = await this.authRepository.buscarRolPorNombre(ROL_POR_DEFECTO);
+            if (!rolDefecto) {
+                throw new AppError("No existe el rol por defecto. Ejecute el seed.", 500);
+            }
+            rolId = rolDefecto.id;
+        }
+
+        const passwordHasheada = await hash(data.password, env.saltos_encriptacion);
+
+        const creado = await this.authRepository.crearUsuario({
+            nombre: data.nombre,
+            email: data.email,
+            password: passwordHasheada,
+            rol_id: rolId,
+        });
+
+        return this.mapearUsuarioPublico(creado);
     }
 
-    let payloadTokenAcess = payloadToken;
-    payloadToken.permisos = permisos;
+    /**
+     * Refresh: genera un nuevo access token a partir de un refresh token valido.
+     */
+    async refrescarToken(refreshToken: string): Promise<{ token: string }> {
+        if (!refreshToken) {
+            throw errorNoAutorizado("No se proporciono refresh token");
+        }
 
-    const acessToken = sign(
-        payloadTokenAcess,
-        env.FIRMA_ACCESS_TOKEN,
-        { expiresIn: env.ACCESS_TOKEN_DURATION as SignOptions["expiresIn"] }
-    );
+        let payload: PayloadToken;
+        try {
+            payload = verificarRefreshToken(refreshToken);
+        } catch (_error) {
+            throw errorNoAutorizado("Refresh token invalido o expirado");
+        }
 
-    const refreshToken = sign(
-        payloadToken, 
-        env.FIRMA_REFRESH_TOKEN,
-        { expiresIn: env.REFRESH_TOKEN_DURATION as SignOptions["expiresIn"] }
-    );
+        const usuario = await this.authRepository.buscarPorId(aBigInt(payload.usuario_id, "usuario_id"));
+        if (!usuario || !usuario.estado) {
+            throw errorNoAutorizado("Usuario no valido");
+        }
 
-    return {
-        accessToken : acessToken,
-        refreshToken : refreshToken
+        const nuevoPayload: PayloadToken = {
+            usuario_id: usuario.id.toString(),
+            email: usuario.email,
+            rol: usuario.rol.nombre,
+        };
+
+        return { token: generarAccessToken(nuevoPayload) };
     }
-}
 
-export const guardarTokenUsuario = async (user:iUsuario, token:string, tipo_token:('ACCESS' | 'REFRESH'), ip:string, user_agent:string, fecha_expiracion_token:Date) => {
-    const authRepository:AuthRepository = new AuthRepository();
-    try{
-        authRepository.guardarTokenUsuario(user,token,tipo_token,ip,user_agent,fecha_expiracion_token);
-    }catch(error){
-        throw new Error('Error validando el usuario. ' + error);
+    // Mapea la entidad de BD a su representacion publica (sin password)
+    private mapearUsuarioPublico(usuario: { id: bigint; nombre: string; email: string; rol: { nombre: string } }): iUsuarioPublico {
+        return {
+            id: usuario.id.toString(),
+            nombre: usuario.nombre,
+            email: usuario.email,
+            rol: usuario.rol.nombre,
+        };
     }
 }

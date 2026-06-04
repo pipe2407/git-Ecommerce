@@ -1,77 +1,50 @@
 import { prismaClient } from "../../../prisma/prisma.client";
-import { iUsuario } from "../../usuarios/Models/usuarios.model";
-import { iRolesPermisos } from "../Models/auth.model";
 
+/**
+ * Repositorio de autenticacion.
+ * Acceso a datos para login/registro de usuarios.
+ */
 export class AuthRepository {
     prismaClient = prismaClient;
-    
+
     constructor() {}
-    
-    async guardarTokenUsuario (user:iUsuario, token:string, tipoToken:('REFRESH' | 'ACCESS'), ip:string, user_agent:string, fecha_expiracion_token:Date) {
-        try{
-            const resultCreacion = await this.prismaClient.usuarios_token.create({
-                data: {
-                    usuario_crea_fk: user.id,
-                    usuario_modifica_fk:  user.id,
-                    fecha_crea: new Date(),
-                    fecha_modifica:  new Date(),
-                    usuario_fk:  user.id,
-                    token: token,
-                    tipo: tipoToken,
-                    ip_origen: ip,
-                    user_agent: user_agent,
-                    fecha_expiracion: fecha_expiracion_token,
-                }
-            });
-            return resultCreacion;
-        }catch(error){
-            console.log("error creando usuario:" + error);
-            throw new Error('Error guardando el usuario.');
-        }
-    }
 
-    async consultarRolesUsuario(user:iUsuario): Promise<iRolesPermisos>{
-        // Paso 1: Consultar los roles del usuario con inner join
-        const usuarioRoles = await prismaClient.usuarios_roles.findMany({
-            where: {
-                usuario_fk: user.id
-            },
-            include: {
-                roles: {
-                    select: {
-                        codigo: true,
-                        id: true
-                    }
-                }
-            }
+    // Busca un usuario por email (incluye su rol)
+    async buscarPorEmail(email: string) {
+        return this.prismaClient.usuarios.findUnique({
+            where: { email },
+            include: { rol: true },
         });
-
-        // Paso 2: Crear el array de retorno (objeto asociativo por código de rol)
-        const rolesPermisosMap: iRolesPermisos = {};
-
-        // Paso 3: Foreach para consultar permisos de cada rol
-        for (const ur of usuarioRoles) {
-            const rolCodigo = ur.roles.codigo;
-            
-            // Consultar permisos del rol desde roles_permiso
-            const rolesPermisos = await prismaClient.roles_permiso.findMany({
-                where: {
-                    rol_fk: ur.roles.id
-                },
-                include: {
-                    permisos: {
-                        select: {
-                            codigo: true
-                        }
-                    }
-                }
-            });
-
-            // Extraer los códigos de permisos y agregarlos al array
-            rolesPermisosMap[rolCodigo] = rolesPermisos.map(rp => rp.permisos.codigo);
-        }
-        
-        return rolesPermisosMap;
     }
 
+    // Busca un usuario por id (incluye su rol)
+    async buscarPorId(id: bigint) {
+        return this.prismaClient.usuarios.findUnique({
+            where: { id },
+            include: { rol: true },
+        });
+    }
+
+    // Busca un rol por id
+    async buscarRolPorId(id: bigint) {
+        return this.prismaClient.roles.findUnique({ where: { id } });
+    }
+
+    // Busca un rol por nombre
+    async buscarRolPorNombre(nombre: string) {
+        return this.prismaClient.roles.findUnique({ where: { nombre } });
+    }
+
+    // Crea un nuevo usuario (recibe la password ya hasheada)
+    async crearUsuario(data: { nombre: string; email: string; password: string; rol_id: bigint }) {
+        return this.prismaClient.usuarios.create({
+            data: {
+                nombre: data.nombre,
+                email: data.email,
+                password: data.password,
+                rol_id: data.rol_id,
+            },
+            include: { rol: true },
+        });
+    }
 }
