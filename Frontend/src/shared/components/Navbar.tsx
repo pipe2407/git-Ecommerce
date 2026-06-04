@@ -156,7 +156,7 @@ export default function Navbar() {
             <div className="flex items-center gap-1 sm:gap-2">
 
               {/* Search mobile */}
-              <button
+              {/* <button
                 className="md:hidden btn-icon"
                 onClick={() => setSearchOpen(v => !v)}
                 aria-label="Buscar"
@@ -165,7 +165,7 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-              </button>
+              </button> */}
 
               {/* Cart */}
               <Link to="/cart" className="btn-icon relative" aria-label="Carrito">
