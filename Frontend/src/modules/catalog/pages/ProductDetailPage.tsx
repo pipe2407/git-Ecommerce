@@ -1,8 +1,16 @@
 // EC-004b — Detalle del producto
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../../shared/components/Layout';
-import { MOCK_PRODUCTS } from '../../../shared/mockData';
+import { useProductosStore } from '../../../stores/productosStore';
+import { useCarritoStore } from '../../../stores/carritoStore';
+import type { Product } from '../../../shared/mockData';
+
+const getImageUrl = (imagen: string | null | undefined, id: string | number) => {
+  if (imagen?.startsWith('data:')) return imagen;
+  if (imagen) return imagen;
+  return `https://picsum.photos/seed/prod${id}/600/600`;
+};
 
 function Stars({ rating, large }: { rating: number; large?: boolean }) {
   const size = large ? 'w-5 h-5' : 'w-4 h-4';
@@ -20,9 +28,43 @@ function Stars({ rating, large }: { rating: number; large?: boolean }) {
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const product = MOCK_PRODUCTS.find(p => p.id === Number(id));
+  const productoDetalle = useProductosStore((s) => s.productoDetalle);
+  const fetchProducto = useProductosStore((s) => s.fetchProducto);
+  const productos = useProductosStore((s) => s.productos);
+  const loading = useProductosStore((s) => s.loading);
+
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const agregarAlCarrito = useCarritoStore((s) => s.agregarProducto);
+
+  useEffect(() => {
+    if (id) fetchProducto(id);
+  }, [id, fetchProducto]);
+
+  const product: Product | null = productoDetalle ? {
+    id: Number(productoDetalle.id),
+    name: productoDetalle.nombre,
+    price: productoDetalle.precio,
+    originalPrice: productoDetalle.precioOriginal,
+    image: getImageUrl(productoDetalle.imagen, productoDetalle.id),
+    rating: 0,
+    reviews: 0,
+    category: productoDetalle.categoria.nombre,
+    inStock: productoDetalle.stock > 0,
+    description: productoDetalle.descripcion,
+    sku: productoDetalle.sku || String(productoDetalle.id),
+    brand: productoDetalle.marca,
+  } : null;
+
+  if (loading && !product) {
+    return (
+      <Layout>
+        <div className="min-h-[60vh] flex items-center justify-center text-slate-400">
+          Cargando...
+        </div>
+      </Layout>
+    );
+  }
 
   if (!product) {
     return (
@@ -38,11 +80,38 @@ export default function ProductDetailPage() {
   }
 
   const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
-  const related = MOCK_PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 3);
+  const related = productos
+    .filter(p => p.categoria.nombre === product.category && Number(p.id) !== product.id)
+    .slice(0, 3)
+    .map(p => ({
+      id: Number(p.id),
+      name: p.nombre,
+      price: p.precio,
+      originalPrice: p.precioOriginal,
+      image: getImageUrl(p.imagen, p.id),
+      rating: 0,
+      reviews: 0,
+      category: p.categoria.nombre,
+      inStock: p.stock > 0,
+      description: p.descripcion,
+      sku: p.sku || String(p.id),
+      brand: p.marca,
+    }));
 
-  const handleAddToCart = () => {
+  const handleAgregarAlCarrito = () => {
+    if (!product || !id) return;
+    agregarAlCarrito({
+      productoId: id,
+      nombre: product.name,
+      precio: product.price,
+      cantidad: qty,
+      imagen: product.image,
+    });
     setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    setTimeout(() => {
+      setAdded(false);
+      navigate('/cart');
+    }, 1500);
   };
 
   return (
@@ -142,34 +211,24 @@ export default function ProductDetailPage() {
                   <span className="text-slate-500 text-sm">unidades</span>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={handleAddToCart}
-                    className={`btn-primary flex-1 py-4 text-base transition-all ${added ? 'bg-green-500' : ''}`}
-                  >
-                    {added ? (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                        ¡Agregado!
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        Agregar al carrito
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => navigate('/checkout')}
-                    className="btn-ghost flex-1 py-4 text-base"
-                  >
-                    Comprar ahora
-                  </button>
-                </div>
+                <button
+                  onClick={handleAgregarAlCarrito}
+                  disabled={added}
+                  className={`btn-primary w-full py-4 text-base transition-all ${added ? 'bg-green-500' : ''}`}
+                >
+                  {added ? (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                      ¡Agregado al carrito!
+                    </>
+                  ) : (
+                    <>
+                      🛒 Agregar al carrito
+                    </>
+                  )}
+                </button>
               </>
             )}
 

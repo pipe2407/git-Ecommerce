@@ -1,17 +1,34 @@
-// EC-008 — Publicar producto (vendedor)
-import { useState } from 'react';
+// EC-008 — Publicar producto
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../../shared/components/Layout';
 import { MOCK_CATEGORIES } from '../../../shared/mockData';
+import { useCategoriasStore } from '../../../stores/categoriasStore';
+import { useProductosStore } from '../../../stores/productosStore';
 
 export default function PublishPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: '', category: '', price: '', originalPrice: '',
-    description: '', sku: '', stock: '',
+    description: '', sku: '', stock: '', marca: '',
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const categorias = useCategoriasStore((s) => s.categorias);
+  const fetchCategorias = useCategoriasStore((s) => s.fetchCategorias);
+  const crearProducto = useProductosStore((s) => s.crearProducto);
+
+  useEffect(() => {
+    fetchCategorias('productos');
+  }, [fetchCategorias]);
+
+  const categoryOptions = useMemo(
+    () => (categorias.length > 0
+      ? categorias.map((c) => c.nombre)
+      : MOCK_CATEGORIES.filter((c) => c !== 'Todos')),
+    [categorias]
+  );
 
   const update = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -19,23 +36,44 @@ export default function PublishPage() {
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setImagePreview(url);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setImagePreview(base64);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const seleccionada = categorias.find((c) => c.nombre === form.category);
+      await crearProducto({
+        nombre: form.name,
+        descripcion: form.description,
+        precio: form.price,
+        precioOriginal: form.originalPrice || undefined,
+        categoria_id: seleccionada?.id ?? form.category,
+        stock: Number(form.stock),
+        sku: form.sku || undefined,
+        marca: form.marca || undefined,
+        imagen: imagePreview || undefined,
+      });
+      navigate('/management');
+    } catch (error) {
+      alert('Error al publicar: ' + (error as Error).message);
+    } finally {
       setLoading(false);
-      navigate('/my-listings');
-    }, 1500);
+    }
   };
 
-  const isComplete = Object.entries(form)
-    .filter(([k]) => k !== 'originalPrice' && k !== 'sku')
-    .every(([, v]) => v.trim() !== '');
+  const isComplete = form.name.trim() !== '' &&
+    form.category.trim() !== '' &&
+    form.price.trim() !== '' &&
+    form.description.trim() !== '' &&
+    form.stock.trim() !== '';
 
   return (
     <Layout>
@@ -95,11 +133,23 @@ export default function PublishPage() {
                   <label className="block text-sm font-medium text-slate-300 mb-2">Categoría *</label>
                   <select value={form.category} onChange={update('category')} className="input-field bg-[#13131a] cursor-pointer">
                     <option value="">Seleccionar...</option>
-                    {MOCK_CATEGORIES.filter(c => c !== 'Todos').map(c => (
+                    {categoryOptions.map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Marca (opcional)</label>
+                  <input
+                    type="text"
+                    value={form.marca}
+                    onChange={update('marca')}
+                    placeholder="Ej: Samsung, Apple"
+                    className="input-field"
+                  />
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">SKU (opcional)</label>
                   <input
@@ -174,7 +224,7 @@ export default function PublishPage() {
 
           {/* Submit */}
           <div className="flex flex-col sm:flex-row gap-3 justify-end">
-            <button type="button" onClick={() => navigate('/my-listings')} className="btn-ghost px-8">
+            <button type="button" onClick={() => navigate('/management')} className="btn-ghost px-8">
               Cancelar
             </button>
             <button

@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import Layout from '../shared/components/Layout';
 import ProductCard from '../shared/components/ProductCard';
 import { MOCK_PRODUCTS } from '../shared/mockData';
+import { useProductosStore } from '../stores/productosStore';
+import authService from '../services/api/authService';
 
 /* ────────────────────────────────────────────────────
    DATA
@@ -145,8 +147,30 @@ function useCountdown(hours: number, minutes: number, seconds: number) {
 ──────────────────────────────────────────────────── */
 export default function HomePage() {
   const countdown  = useCountdown(5, 47, 23);
-  const featured   = MOCK_PRODUCTS.filter(p => p.inStock).slice(0, 8);
-  const newArrivals = MOCK_PRODUCTS.filter(p => p.isNew).slice(0, 4);
+  const productos = useProductosStore((s) => s.productos);
+  const fetchProductos = useProductosStore((s) => s.fetchProductos);
+  const isAuthenticated = authService.isAuthenticated();
+
+  useEffect(() => {
+    fetchProductos();
+  }, [fetchProductos]);
+
+  const featured   = (productos.length > 0 ? productos : MOCK_PRODUCTS).filter(p => {
+    if (productos.length > 0) return p.stock > 0;
+    return (p as any).inStock;
+  }).slice(0, 8);
+
+  const newArrivals = (productos.length > 0 ? productos : MOCK_PRODUCTS)
+    .sort((a, b) => {
+      if (productos.length > 0) {
+        const dateA = new Date((a as any).fechaCreacion || 0).getTime();
+        const dateB = new Date((b as any).fechaCreacion || 0).getTime();
+        return dateB - dateA;
+      }
+      return 0;
+    })
+    .slice(0, 4);
+
   const hotDeals   = MOCK_PRODUCTS.filter(p => p.isHot || p.originalPrice).slice(0, 4);
 
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -590,11 +614,30 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-            {featured.map(product => (
-              <Link key={product.id} to={`/product/${product.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-                <ProductCard {...product} />
-              </Link>
-            ))}
+            {featured.map(product => {
+              const mapped = productos.length > 0 ? {
+                id: Number(product.id),
+                name: product.nombre,
+                price: product.precio,
+                originalPrice: product.precioOriginal,
+                image: product.imagen ? (product.imagen.startsWith('data:') ? product.imagen : product.imagen) : `https://picsum.photos/seed/prod${product.id}/600/600`,
+                rating: 0,
+                reviews: 0,
+                category: product.categoria?.nombre || 'General',
+                inStock: product.stock > 0,
+                description: product.descripcion,
+                sku: product.sku || String(product.id),
+                brand: product.marca,
+                isNew: false,
+                isHot: false,
+              } : product;
+
+              return (
+                <Link key={product.id} to={`/product/${product.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                  <ProductCard {...mapped} />
+                </Link>
+              );
+            })}
           </div>
 
           <div className="text-center mt-8 sm:hidden">
@@ -630,11 +673,30 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-5">
-            {newArrivals.map(product => (
-              <Link key={product.id} to={`/product/${product.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-                <ProductCard {...product} />
-              </Link>
-            ))}
+            {newArrivals.map(product => {
+              const mapped = productos.length > 0 ? {
+                id: Number(product.id),
+                name: product.nombre,
+                price: product.precio,
+                originalPrice: product.precioOriginal,
+                image: product.imagen ? (product.imagen.startsWith('data:') ? product.imagen : product.imagen) : `https://picsum.photos/seed/prod${product.id}/600/600`,
+                rating: 0,
+                reviews: 0,
+                category: product.categoria?.nombre || 'General',
+                inStock: product.stock > 0,
+                description: product.descripcion,
+                sku: product.sku || String(product.id),
+                brand: product.marca,
+                isNew: true,
+                isHot: false,
+              } : product;
+
+              return (
+                <Link key={product.id} to={`/product/${product.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                  <ProductCard {...mapped} />
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -824,12 +886,14 @@ export default function HomePage() {
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'center' }}>
-            <Link to="/register" className="btn-primary animate-pulse-glow" style={{ padding: '16px 40px', fontSize: '1rem' }}>
-              Crear cuenta gratis
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
+            {!isAuthenticated && (
+              <Link to="/register" className="btn-primary animate-pulse-glow" style={{ padding: '16px 40px', fontSize: '1rem' }}>
+                Crear cuenta gratis
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </Link>
+            )}
             <Link to="/catalog" className="btn-ghost" style={{ padding: '16px 36px', fontSize: '1rem' }}>
               Explorar catálogo
             </Link>

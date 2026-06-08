@@ -1,34 +1,30 @@
 // EC-005 — Carrito de compras
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../../../shared/components/Layout';
-import { MOCK_PRODUCTS } from '../../../shared/mockData';
+import { useCarritoStore } from '../../../stores/carritoStore';
 
-interface CartItem {
-  product: typeof MOCK_PRODUCTS[0];
-  qty: number;
-}
-
-const INITIAL_CART: CartItem[] = [
-  { product: MOCK_PRODUCTS[0], qty: 1 },
-  { product: MOCK_PRODUCTS[3], qty: 2 },
-  { product: MOCK_PRODUCTS[6], qty: 1 },
-];
+const getImageUrl = (imagen: string | null | undefined, productoId: string) => {
+  if (imagen?.startsWith('data:')) return imagen;
+  if (imagen) return imagen;
+  return `https://picsum.photos/seed/${productoId}/200/200`;
+};
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const [items, setItems] = useState<CartItem[]>(INITIAL_CART);
+  const items = useCarritoStore((s) => s.items);
+  const actualizarCantidad = useCarritoStore((s) => s.actualizarCantidad);
+  const removerProducto = useCarritoStore((s) => s.removerProducto);
 
-  const updateQty = (id: number, qty: number) => {
+  const updateQty = (productoId: string, qty: number) => {
     if (qty < 1) return;
-    setItems(prev => prev.map(i => i.product.id === id ? { ...i, qty } : i));
+    actualizarCantidad(productoId, qty);
   };
 
-  const remove = (id: number) => {
-    setItems(prev => prev.filter(i => i.product.id !== id));
+  const remove = (productoId: string) => {
+    removerProducto(productoId);
   };
 
-  const subtotal = items.reduce((acc, i) => acc + i.product.price * i.qty, 0);
+  const subtotal = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0);
   const shipping = subtotal >= 200000 ? 0 : 15000;
   const total = subtotal + shipping;
 
@@ -51,25 +47,25 @@ export default function CartPage() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Items */}
             <div className="lg:col-span-2 space-y-4">
-              {items.map(({ product, qty }) => (
-                <div key={product.id} className="glass rounded-2xl p-4 flex gap-4 animate-fade-in">
-                  <Link to={`/product/${product.id}`}>
+              {items.map((item) => (
+                <div key={item.productoId} className="glass rounded-2xl p-4 flex gap-4 animate-fade-in">
+                  <Link to={`/product/${item.productoId}`}>
                     <img
-                      src={product.image}
-                      alt={product.name}
+                      src={getImageUrl(item.imagen, item.productoId)}
+                      alt={item.nombre}
                       className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-xl flex-shrink-0 hover:scale-105 transition-transform"
-                      onError={e => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${product.id}/200/200`; }}
+                      onError={e => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${item.productoId}/200/200`; }}
                     />
                   </Link>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <Link to={`/product/${product.id}`}>
+                      <Link to={`/product/${item.productoId}`}>
                         <h3 className="text-sm sm:text-base font-semibold text-white line-clamp-2 hover:text-purple-400 transition-colors">
-                          {product.name}
+                          {item.nombre}
                         </h3>
                       </Link>
                       <button
-                        onClick={() => remove(product.id)}
+                        onClick={() => remove(item.productoId)}
                         className="text-slate-600 hover:text-red-400 transition-colors flex-shrink-0"
                         aria-label="Eliminar"
                       >
@@ -79,27 +75,25 @@ export default function CartPage() {
                       </button>
                     </div>
 
-                    <p className="text-xs text-slate-500 mt-1">{product.category}</p>
-
                     <div className="flex items-center justify-between mt-3">
                       {/* Qty */}
                       <div className="flex items-center glass rounded-lg overflow-hidden">
                         <button
-                          onClick={() => updateQty(product.id, qty - 1)}
+                          onClick={() => updateQty(item.productoId, item.cantidad - 1)}
                           className="px-3 py-1.5 text-slate-400 hover:text-white transition-colors text-lg"
                         >
                           −
                         </button>
-                        <span className="px-3 py-1.5 text-white font-semibold text-sm min-w-[32px] text-center">{qty}</span>
+                        <span className="px-3 py-1.5 text-white font-semibold text-sm min-w-[32px] text-center">{item.cantidad}</span>
                         <button
-                          onClick={() => updateQty(product.id, qty + 1)}
+                          onClick={() => updateQty(item.productoId, item.cantidad + 1)}
                           className="px-3 py-1.5 text-slate-400 hover:text-white transition-colors text-lg"
                         >
                           +
                         </button>
                       </div>
                       <span className="text-white font-bold text-base">
-                        ${(product.price * qty).toLocaleString('es-CO')}
+                        ${(item.precio * item.cantidad).toLocaleString('es-CO')}
                       </span>
                     </div>
                   </div>

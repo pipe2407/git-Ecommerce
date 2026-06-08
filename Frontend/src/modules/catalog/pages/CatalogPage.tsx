@@ -1,9 +1,13 @@
 // EC-004 — Catálogo de productos con filtros por categoría y búsqueda
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import Layout from '../../../shared/components/Layout';
 import ProductCard from '../../../shared/components/ProductCard';
-import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '../../../shared/mockData';
+import { MOCK_CATEGORIES, MOCK_PRODUCTS } from '../../../shared/mockData';
+import { useProductosStore } from '../../../stores/productosStore';
+import { useCategoriasStore } from '../../../stores/categoriasStore';
+import { useCarritoStore } from '../../../stores/carritoStore';
+import type { Product } from '../../../shared/mockData';
 
 type SortKey = 'default' | 'price-asc' | 'price-desc' | 'rating';
 
@@ -17,23 +21,103 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 export default function CatalogPage() {
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Todos');
   const [sort, setSort] = useState<SortKey>('default');
   const [cartCount, setCartCount] = useState(0);
 
+  const productos = useProductosStore((s) => s.productos);
+  const fetchProductos = useProductosStore((s) => s.fetchProductos);
+  const categorias = useCategoriasStore((s) => s.categorias);
+  const fetchCategorias = useCategoriasStore((s) => s.fetchCategorias);
+  const agregarProducto = useCarritoStore((s) => s.agregarProducto);
+
+  // Lee los parámetros de URL para establecer filtros iniciales
+  useEffect(() => {
+    const catParam = searchParams.get('cat');
+    const filterParam = searchParams.get('filter');
+    const searchParam = searchParams.get('search');
+
+    if (catParam) {
+      setCategory(catParam);
+    }
+
+    if (searchParam) {
+      setSearch(searchParam);
+    }
+
+    if (filterParam === 'sale') {
+      // Filtrar productos en oferta (con precio original)
+      setSearch('');
+    } else if (filterParam === 'new') {
+      // Filtrar productos nuevos
+      setSearch('');
+    }
+  }, [searchParams]);
+
+  // Carga de productos desde la API según los filtros activos.
+  useEffect(() => {
+    fetchProductos();
+  }, [fetchProductos]);
+
+  // Carga de categorías reales (con fallback a MOCK_CATEGORIES).
+  useEffect(() => {
+    fetchCategorias('productos');
+  }, [fetchCategorias]);
+
+  const categoryChips = useMemo(() => {
+    if (categorias.length > 0) return ['Todos', ...categorias.map((c) => c.nombre)];
+    return MOCK_CATEGORIES;
+  }, [categorias]);
+
+  const getImageUrl = (imagen: string | null | undefined, id: string) => {
+    if (imagen?.startsWith('data:')) return imagen;
+    if (imagen) return imagen;
+    return `https://picsum.photos/seed/prod${id}/600/600`;
+  };
+
   const filtered = useMemo(() => {
-    let list = [...MOCK_PRODUCTS];
+    const filterParam = searchParams.get('filter');
+    let list: Product[] = productos.map(p => ({
+      id: Number(p.id),
+      name: p.nombre,
+      price: p.precio,
+      originalPrice: p.precioOriginal,
+      image: getImageUrl(p.imagen, p.id),
+      rating: 0,
+      reviews: 0,
+      category: p.categoria.nombre,
+      inStock: p.stock > 0,
+      description: p.descripcion,
+      sku: p.sku || String(p.id),
+      brand: p.marca,
+    }));
+
+    // Aplicar filtro por categoría
     if (category !== 'Todos') list = list.filter(p => p.category === category);
+
+    // Aplicar filtro por tipo (ofertas, nuevos, etc.)
+    if (filterParam === 'sale') {
+      list = list.filter(p => p.originalPrice && p.originalPrice > p.price);
+    } else if (filterParam === 'new') {
+      const mockProducts = MOCK_PRODUCTS;
+      list = list.filter(p => mockProducts.some(mp => mp.id === String(p.id) && mp.isNew));
+    }
+
+    // Búsqueda
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
     }
+
+    // Ordenar
     if (sort === 'price-asc')  list.sort((a, b) => a.price - b.price);
     if (sort === 'price-desc') list.sort((a, b) => b.price - a.price);
     if (sort === 'rating')     list.sort((a, b) => b.rating - a.rating);
+
     return list;
-  }, [search, category, sort]);
+  }, [productos, search, category, sort, searchParams]);
 
   return (
     <Layout>
@@ -112,7 +196,7 @@ export default function CatalogPage() {
 
         {/* Category chips */}
         <div className="flex gap-2 flex-wrap mb-8">
-          {MOCK_CATEGORIES.map(cat => (
+          {categoryChips.map(cat => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
@@ -142,8 +226,17 @@ export default function CatalogPage() {
                 <ProductCard
                   {...product}
                   onAddToCart={(id) => {
-                    setCartCount(c => c + 1);
-                    console.log('Added to cart:', id, '| Total:', cartCount + 1);
+                    const prod = productos.find(p => p.id === String(id));
+                    if (prod) {
+                      agregarProducto({
+                        productoId: String(prod.id),
+                        nombre: prod.nombre,
+                        precio: prod.precio,
+                        cantidad: 1,
+                        imagen: prod.imagen,
+                      });
+                      setCartCount(c => c + 1);
+                    }
                   }}
                 />
               </Link>

@@ -1,18 +1,20 @@
 // EC-002 — Login de usuario
-// Simulación: acepta cualquier email/contraseña y redirige al catálogo
+// Conectado al backend vía authStore (POST /auth/login).
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../../stores/authStore';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const login = useAuthStore((s) => s.login);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -25,17 +27,19 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    // Simulación de login (sin backend)
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userRole', 'buyer'); // Rol por defecto
+    try {
+      await login(email, password);
       navigate('/catalog');
-    }, 1200);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleMockLogin = (role: string) => {
+    // Acceso rápido de demostración (sin backend) — mantiene la UX previa.
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('userRole', role);
     navigate(role === 'admin' ? '/admin/users' : '/catalog');
@@ -83,7 +87,7 @@ const LoginPage: React.FC = () => {
         {/* Card */}
         <div className="glass rounded-3xl p-8">
           {/* Social login */}
-          <button className="w-full flex items-center justify-center gap-3 btn-ghost mb-6 py-3">
+          {/* <button className="w-full flex items-center justify-center gap-3 btn-ghost mb-6 py-3">
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#EA4335" d="M5.26620003,9.76452941 C6.19878754,6.93863203 8.85444915,4.90909091 12,4.90909091 C13.6909091,4.90909091 15.2181818,5.50909091 16.4181818,6.49090909 L19.9090909,3 C17.7818182,1.14545455 15.0545455,0 12,0 C7.27006974,0 3.1977497,2.69829785 1.23999023,6.65002441 L5.26620003,9.76452941 Z" />
               <path fill="#34A853" d="M16.0407269,18.0125889 C14.9509167,18.7163016 13.5660892,19.0909091 12,19.0909091 C8.86648613,19.0909091 6.21911939,17.076871 5.27698177,14.2678769 L1.23746264,17.3349879 C3.19279051,21.2936293 7.26500293,24 12,24 C14.9328362,24 17.7353462,22.9573905 19.834192,20.9995801 L16.0407269,18.0125889 Z" />
@@ -91,13 +95,13 @@ const LoginPage: React.FC = () => {
               <path fill="#FBBC05" d="M5.27698177,14.2678769 C5.03832634,13.556323 4.90909091,12.7937589 4.90909091,12 C4.90909091,11.2182781 5.03443647,10.4668121 5.26620003,9.76452941 L1.23999023,6.65002441 C0.43658717,8.26043162 0,10.0753848 0,12 C0,13.9195484 0.444780743,15.7301709 1.23746264,17.3349879 L5.27698177,14.2678769 Z" />
             </svg>
             <span className="text-sm font-medium">Continuar con Google</span>
-          </button>
+          </button> */}
 
-          <div className="relative flex items-center gap-4 mb-6">
+          {/* <div className="relative flex items-center gap-4 mb-6">
             <div className="flex-1 h-px bg-white/[0.08]" />
             <span className="text-xs text-slate-500 font-medium">O con email</span>
             <div className="flex-1 h-px bg-white/[0.08]" />
-          </div>
+          </div> */}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
@@ -188,14 +192,14 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Autenticación Rápida (Mock Roles) */}
-        <div className="mt-8">
+        {/* <div className="mt-8">
           <p className="text-center text-xs text-slate-500 mb-3 font-semibold tracking-wider uppercase">Accesos Rápidos (Demo Roles)</p>
           <div className="flex gap-2 justify-center">
             <button onClick={() => handleMockLogin('admin')} className="btn-ghost text-xs px-3 py-1.5 border-purple-500/30 text-purple-400 hover:bg-purple-500/10">Admin</button>
             <button onClick={() => handleMockLogin('seller')} className="btn-ghost text-xs px-3 py-1.5 border-blue-500/30 text-blue-400 hover:bg-blue-500/10">Vendedor</button>
             <button onClick={() => handleMockLogin('buyer')} className="btn-ghost text-xs px-3 py-1.5 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10">Cliente</button>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

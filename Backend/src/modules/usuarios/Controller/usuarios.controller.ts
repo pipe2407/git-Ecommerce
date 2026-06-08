@@ -1,62 +1,54 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { UsuariosService } from "../Services/usuarios.service";
-import { iTokensAcceso } from "../../Auth/Models/auth.model";
-import { env } from "../../../config/env";
-import strict from "node:assert/strict";
 
 const usuariosService = new UsuariosService();
 
-// Función para crear usuario
-export const crearUsuario = async (request: Request, response: Response) => {
+// GET /usuarios -> listar usuarios
+export const listarUsuarios = async (_request: Request, response: Response, next: NextFunction): Promise<void> => {
     try {
-        // Llamar al servicio
-        const resultado = await usuariosService.crearUsuario(request.body);
-        response.status(201).json(resultado);
-    } catch (error: any) {
-        response.status(500).json({ 
-            error: "Error al crear usuario", 
-            mensaje: error.message || "Error interno del servidor" 
-        });
+        const usuarios = await usuariosService.listar();
+        response.status(200).json(usuarios);
+    } catch (error) {
+        next(error);
     }
 };
 
-// Función para consultar usuario
-export const consultarUsuario = async (request: Request, response: Response) => {
+// GET /usuarios/:id -> detalle
+export const obtenerUsuario = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
     try {
-        // Llamar al servicio
-        const resultado = await usuariosService.consultarUsuario(request.query);
-        response.status(200).json({"message" : "Usuario Creado"});
-    } catch (error: any) {
-        response.status(500).json({ 
-            error: "Error al consultar usuario", 
-            mensaje: error.message || "Error interno del servidor" 
-        });
+        const usuario = await usuariosService.obtener(request.params.id);
+        response.status(200).json(usuario);
+    } catch (error) {
+        next(error);
     }
 };
 
-// Función para login de usuario
-export const loginUsuario = async (request: Request, response: Response) => {
+// POST /usuarios -> crear usuario
+export const crearUsuario = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
     try {
-        // Llamar al servicio
-        const ip =
-        request.headers["x-forwarded-for"]?.toString().split(",")[0] ||
-        request.socket.remoteAddress ||
-        "unknown";
+        const usuario = await usuariosService.crear(request.body);
+        response.status(201).json(usuario);
+    } catch (error) {
+        next(error);
+    }
+};
 
-        const user_agent: string = request.headers['user-agent']?.toString() || 'unknown';
+// PUT /usuarios/:id -> actualizar
+export const actualizarUsuario = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
+    try {
+        const usuario = await usuariosService.actualizar(request.params.id, request.body);
+        response.status(200).json(usuario);
+    } catch (error) {
+        next(error);
+    }
+};
 
-        const resultado:iTokensAcceso = await usuariosService.loginUsuario(request.body, ip , user_agent);
-        response.status(200)
-        .cookie("refresh_token", resultado.refreshToken, {
-            httpOnly: true,
-            secure: env.ENVIRONMENT == 'production',
-            sameSite: "strict"
-        })
-        .json({ "access_token" : resultado.accessToken});
-    } catch (error: any) {
-        response.status(401).json({ 
-            error: "Error al autenticar usuario", 
-            mensaje: error.message || "Credenciales inválidas" 
-        });
+// DELETE /usuarios/:id -> eliminar
+export const eliminarUsuario = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
+    try {
+        await usuariosService.eliminar(request.params.id);
+        response.status(200).json({ ok: true });
+    } catch (error) {
+        next(error);
     }
 };

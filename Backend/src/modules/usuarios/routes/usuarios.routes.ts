@@ -1,19 +1,28 @@
 import { Router } from "express";
-import { 
-    crearUsuario, 
-    consultarUsuario, 
-    loginUsuario 
+import {
+    listarUsuarios,
+    obtenerUsuario,
+    crearUsuario,
+    actualizarUsuario,
+    eliminarUsuario,
 } from "../Controller/usuarios.controller";
+import { autenticar } from "../../../middleware/autenticacion";
+import { autorizar } from "../../../middleware/autorizacion";
 
 const usuariosRoutes = Router();
 
-// Endpoint para crear usuario
-usuariosRoutes.post('/crear', crearUsuario);
+// Todas las rutas de usuarios requieren autenticacion
+usuariosRoutes.use(autenticar);
 
-// Endpoint para consultar usuario
-usuariosRoutes.get('/consultar', consultarUsuario);
-
-// Endpoint para login
-usuariosRoutes.post('/login', loginUsuario);
+// GET /usuarios -> listar
+usuariosRoutes.get("/", listarUsuarios);
+// GET /usuarios/:id -> detalle
+usuariosRoutes.get("/:id", obtenerUsuario);
+// POST /usuarios -> crear (solo admin)
+usuariosRoutes.post("/", autorizar(["admin"]), crearUsuario);
+// PUT /usuarios/:id -> actualizar (solo admin)
+usuariosRoutes.put("/:id", autorizar(["admin"]), actualizarUsuario);
+// DELETE /usuarios/:id -> eliminar (solo admin)
+usuariosRoutes.delete("/:id", autorizar(["admin"]), eliminarUsuario);
 
 export default usuariosRoutes;

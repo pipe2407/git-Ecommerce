@@ -1,55 +1,73 @@
 // Footer premium para TechCore — PC & Portátiles Store
 import { Link } from 'react-router-dom';
+import authService from '../../services/api/authService';
 
-const FOOTER_SECTIONS = [
-  {
-    title: 'Productos',
-    links: [
-      { label: 'Portátiles Gaming', to: '/catalog?cat=Portátiles' },
-      { label: 'Computadores de Escritorio', to: '/catalog?cat=Computadores' },
-      { label: 'Tarjetas Gráficas GPU', to: '/catalog?cat=Componentes' },
-      { label: 'Procesadores CPU', to: '/catalog?cat=Componentes' },
-      { label: 'Monitores Gaming', to: '/catalog?cat=Monitores' },
-      { label: 'Periféricos', to: '/catalog?cat=Periféricos' },
-    ],
-  },
-  {
-    title: 'Ofertas',
-    links: [
-      { label: 'Ofertas del día', to: '/catalog?filter=sale' },
-      { label: 'Productos nuevos',to: '/catalog?filter=new' },
-      { label: 'Más vendidos',    to: '/catalog?filter=hot' },
-      { label: 'Combos armados',  to: '/catalog?filter=bundle' },
-      { label: 'Liquidación',     to: '/catalog?filter=clearance' },
-    ],
-  },
-  {
-    title: 'Mi Cuenta',
-    links: [
-      { label: 'Iniciar sesión', to: '/login' },
-      { label: 'Registrarse',   to: '/register' },
-      { label: 'Mis pedidos',   to: '/orders' },
-      { label: 'Mis favoritos', to: '/wishlist' },
-      { label: 'Publicar producto', to: '/publish' },
-    ],
-  },
-  {
-    title: 'Soporte',
-    links: [
-      { label: 'Centro de ayuda', to: '#' },
-      { label: 'Garantías',       to: '#' },
-      { label: 'Devoluciones',    to: '#' },
-      { label: 'Rastrear pedido', to: '#' },
-      { label: 'Contacto',        to: '#' },
-    ],
-  },
-];
+const getFooterSections = () => {
+  const isAuthenticated = authService.isAuthenticated();
+  const user = authService.getStoredUser();
+  const userRole = user?.rol || localStorage.getItem('userRole') || 'buyer';
+
+  const sections = [
+    {
+      title: 'Productos',
+      links: [
+        { label: 'Portátiles Gaming', to: '/catalog?cat=Portátiles' },
+        { label: 'Computadores de Escritorio', to: '/catalog?cat=Computadores' },
+        { label: 'Tarjetas Gráficas GPU', to: '/catalog?cat=Componentes' },
+        { label: 'Procesadores CPU', to: '/catalog?cat=Componentes' },
+        { label: 'Monitores Gaming', to: '/catalog?cat=Monitores' },
+        { label: 'Periféricos', to: '/catalog?cat=Periféricos' },
+      ],
+    },
+    {
+      title: 'Ofertas',
+      links: [
+        { label: 'Ofertas del día', to: '/catalog?filter=sale' },
+        { label: 'Productos nuevos', to: '/catalog?filter=new' },
+        { label: 'Más vendidos', to: '/catalog?filter=hot' },
+        { label: 'Combos armados', to: '/catalog?filter=bundle' },
+        { label: 'Liquidación', to: '/catalog?filter=clearance' },
+      ],
+    },
+    {
+      title: 'Mi Cuenta',
+      links: [
+        ...(isAuthenticated
+          ? [
+              { label: 'Mis pedidos', to: '/orders' },
+              { label: 'Mis favoritos', to: '/wishlist' },
+              ...(userRole === 'seller'
+                ? [{ label: 'Publicar producto', to: '/publish' }]
+                : []),
+            ]
+          : [
+              { label: 'Iniciar sesión', to: '/login' },
+              { label: 'Registrarse', to: '/register' },
+            ]),
+      ],
+    },
+    {
+      title: 'Soporte',
+      links: [
+        { label: 'Centro de ayuda', to: '#' },
+        { label: 'Garantías', to: '#' },
+        { label: 'Devoluciones', to: '#' },
+        { label: 'Rastrear pedido', to: '#' },
+        { label: 'Contacto', to: '#' },
+      ],
+    },
+  ];
+
+  return sections;
+};
 
 const BRANDS = ['ASUS ROG', 'MSI', 'Lenovo', 'Dell', 'HP', 'Apple', 'NVIDIA', 'AMD', 'Intel', 'Corsair', 'Samsung', 'LG'];
 
 const PAYMENT_METHODS = ['💳 Visa', '💳 Mastercard', '🏦 PSE', '💱 Nequi', '💸 Daviplata'];
 
 export default function Footer() {
+  const footerSections = getFooterSections();
+
   return (
     <footer style={{ background: '#060910', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 'auto' }}>
 
@@ -132,7 +150,7 @@ export default function Footer() {
           </div>
 
           {/* Link columns */}
-          {FOOTER_SECTIONS.map(sec => (
+          {footerSections.map(sec => (
             <div key={sec.title}>
               <h4 style={{
                 fontSize: '0.72rem', fontWeight: 700, color: '#f0f6ff',

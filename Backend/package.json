@@ -10,6 +10,7 @@
     "prisma:migrate": "prisma migrate dev --name init --schema=src/prisma/schema.prisma",
     "prisma:generate": "prisma generate --schema=src/prisma/schema.prisma",
     "prisma:pull": "prisma db pull --schema=src/prisma/schema.prisma",
+    "prisma:seed": "ts-node src/prisma/seed.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Edilson Luna",

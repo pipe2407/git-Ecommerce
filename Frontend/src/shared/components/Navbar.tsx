@@ -1,6 +1,8 @@
 // Navbar premium — glassmorphism, search bar, categorías y carrito
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useCarritoStore } from '../../stores/carritoStore';
+import authService from '../../services/api/authService';
 
 const NAV_LINKS = [
   { to: '/catalog',                    label: 'Catálogo',      icon: '🏠', roles: ['all'] },
@@ -16,14 +18,26 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar() {
+  const navigate = useNavigate();
   const [menuOpen,  setMenuOpen]  = useState(false);
   const [scrolled,  setScrolled]  = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
+  const items = useCarritoStore((s) => s.items);
+  const cartCount = items.length;
 
   // Verificar si hay sesión
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const isAuthenticated = authService.isAuthenticated();
   const role = localStorage.getItem('userRole') || 'buyer';
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/catalog?search=${encodeURIComponent(searchQuery)}`);
+      setSearchQuery('');
+    }
+  };
 
   const visibleLinks = NAV_LINKS.filter(l => l.roles.includes('all') || (isAuthenticated && l.roles.includes(role)));
   const categoryLinks = visibleLinks.filter(l => l.roles.includes('all'));
@@ -115,16 +129,19 @@ export default function Navbar() {
             </Link>
 
             {/* Search bar — desktop */}
-            <div className="hidden md:flex flex-1 max-w-xl mx-4">
+            <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-4">
               <div className="relative w-full">
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar portátiles, GPUs, procesadores..."
                   className="input-field pr-12"
                   style={{ borderRadius: 14, height: 42 }}
                 />
                 <button
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  type="submit"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-80 transition-opacity"
                   style={{ color: '#00c8ff' }}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,13 +150,13 @@ export default function Navbar() {
                   </svg>
                 </button>
               </div>
-            </div>
+            </form>
 
             {/* Right actions */}
             <div className="flex items-center gap-1 sm:gap-2">
 
               {/* Search mobile */}
-              <button
+              {/* <button
                 className="md:hidden btn-icon"
                 onClick={() => setSearchOpen(v => !v)}
                 aria-label="Buscar"
@@ -148,7 +165,7 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-              </button>
+              </button> */}
 
               {/* Cart */}
               <Link to="/cart" className="btn-icon relative" aria-label="Carrito">
@@ -156,13 +173,15 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span style={{
-                  position: 'absolute', top: -4, right: -4,
-                  width: 18, height: 18, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #0099cc, #7c3aed)',
-                  fontSize: '0.65rem', fontWeight: 700, color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>3</span>
+                {cartCount > 0 && (
+                  <span style={{
+                    position: 'absolute', top: -4, right: -4,
+                    width: 18, height: 18, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #0099cc, #7c3aed)',
+                    fontSize: '0.65rem', fontWeight: 700, color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>{cartCount}</span>
+                )}
               </Link>
 
               {/* Auth buttons — desktop */}
@@ -198,21 +217,27 @@ export default function Navbar() {
 
           {/* Search bar mobile (expandable) */}
           {searchOpen && (
-            <div className="md:hidden pb-3">
+            <form onSubmit={handleSearch} className="md:hidden pb-3">
               <div className="relative">
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar productos..."
                   className="input-field pr-10"
                   autoFocus
                 />
-                <svg className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#00c8ff' }}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <button
+                  type="submit"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-80 transition-opacity"
+                  style={{ color: '#00c8ff' }}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
               </div>
-            </div>
+            </form>
           )}
 
           {/* Bottom nav row — categories */}
@@ -347,7 +372,7 @@ export default function Navbar() {
           <Link to="/cart" onClick={() => setMenuOpen(false)}
             className="btn-ghost w-full text-center"
             style={{ borderRadius: 12, padding: '11px 20px', fontSize: '0.875rem' }}>
-            🛒 Carrito (3)
+            🛒 Carrito ({cartCount})
           </Link>
           {isAuthenticated ? (
              <button onClick={handleLogout}

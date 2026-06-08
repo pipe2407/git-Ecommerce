@@ -78,7 +78,7 @@ export default function ProductCard({
         {/* Quick-add CTA */}
         <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
           <button
-            onClick={e => { e.preventDefault(); onAddToCart?.(id); }}
+            onClick={e => { e.preventDefault(); e.stopPropagation(); onAddToCart?.(id); }}
             disabled={!inStock}
             className={`w-full text-sm font-bold py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 ${
               inStock
