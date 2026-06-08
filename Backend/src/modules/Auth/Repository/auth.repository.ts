@@ -47,4 +47,12 @@ export class AuthRepository {
             include: { rol: true },
         });
     }
+
+    // Actualiza la contraseña de un usuario
+    async actualizarPassword(usuarioId: bigint, passwordHasheada: string) {
+        return this.prismaClient.usuarios.update({
+            where: { id: usuarioId },
+            data: { password: passwordHasheada },
+        });
+    }
 }

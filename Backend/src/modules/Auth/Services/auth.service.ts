@@ -116,6 +116,30 @@ export class AuthService {
         return { token: generarAccessToken(nuevoPayload) };
     }
 
+    /**
+     * Cambiar contraseña: permite resetear la contraseña usando email y nueva contraseña.
+     * Valida que el usuario exista, esté activo, y que la contraseña cumpla requerimientos.
+     *
+     * ADVERTENCIA DE SEGURIDAD: Este endpoint es vulnerable a account takeover.
+     * Cualquiera que conozca el email de un usuario puede cambiar su contraseña sin verificación.
+     * En producción, implementar: OTP, token temporal enviado por email, o autenticación.
+     */
+    async cambiarContrasena(email: string, nuevaContrasena: string): Promise<{ mensaje: string }> {
+        validarEmail(email);
+        validarPassword(nuevaContrasena);
+
+        const usuario = await this.authRepository.buscarPorEmail(email);
+        if (!usuario || !usuario.estado) {
+            throw errorBadRequest("El email no existe o la cuenta esta desactivada");
+        }
+
+        const passwordHasheada = await hash(nuevaContrasena, env.saltos_encriptacion);
+
+        await this.authRepository.actualizarPassword(usuario.id, passwordHasheada);
+
+        return { mensaje: "Contraseña actualizada correctamente" };
+    }
+
     // Mapea la entidad de BD a su representacion publica (sin password)
     private mapearUsuarioPublico(usuario: { id: bigint; nombre: string; email: string; rol: { nombre: string } }): iUsuarioPublico {
         return {

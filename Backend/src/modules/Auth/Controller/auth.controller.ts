@@ -75,3 +75,13 @@ export const refresh = async (request: Request, response: Response, next: NextFu
         next(error);
     }
 };
+
+// POST /auth/reset-password -> { email, nuevaContrasena } -> { mensaje }
+export const resetPassword = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
+    try {
+        const resultado = await authService.cambiarContrasena(request.body.email, request.body.nuevaContrasena);
+        response.status(200).json(resultado);
+    } catch (error) {
+        next(error);
+    }
+};

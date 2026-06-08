@@ -55,8 +55,8 @@ api.interceptors.response.use(
 // Helper para extraer un mensaje de error legible de una respuesta de Axios.
 export function extraerMensajeError(error: unknown, fallback = 'Error desconocido'): string {
   if (axios.isAxiosError(error)) {
-    const data = error.response?.data as { message?: string; error?: string } | undefined;
-    return data?.message || data?.error || error.message || fallback;
+    const data = error.response?.data as { message?: string; error?: string; mensaje?: string } | undefined;
+    return data?.message || data?.error || data?.mensaje || error.message || fallback;
   }
   if (error instanceof Error) return error.message;
   return fallback;
