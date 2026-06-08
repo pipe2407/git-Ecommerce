@@ -1,16 +1,32 @@
-# Backend - E-commerce API
+# 🔧 Backend - E-commerce API
 
-API REST para gestionar un proyecto de e-commerce orientado a la venta de productos tecnológicos.
+API REST para gestionar un proyecto de e-commerce orientado a la venta de productos tecnológicos. Construida con **Node.js**, **Express**, **TypeScript** y **PostgreSQL**.
 
 ## 📋 Tabla de Contenidos
 
+- [Visión General](#visión-general)
 - [Tecnologías](#tecnologías)
 - [Estructura del Proyecto](#estructura-del-proyecto)
-- [Instalación](#instalación)
+- [Instalación Rápida](#instalación-rápida)
 - [Variables de Entorno](#variables-de-entorno)
 - [Comandos Disponibles](#comandos-disponibles)
 - [API Endpoints](#api-endpoints)
 - [Modelos de Datos](#modelos-de-datos)
+- [Características de Seguridad](#características-de-seguridad)
+- [Troubleshooting](#troubleshooting)
+
+## 🎯 Visión General
+
+Este backend proporciona una API REST completa para un e-commerce de productos tecnológicos. Incluye:
+
+- ✅ **Autenticación y autorización** con JWT
+- ✅ **Gestión de usuarios** con roles y permisos
+- ✅ **Catalogo de productos** con categorías
+- ✅ **Sistema de órdenes** de compra
+- ✅ **Sistema de notificaciones** y auditoria
+- ✅ **Seguridad** con bcrypt, rate limiting y CORS
+- ✅ **ORM type-safe** con Prisma
+- ✅ **Validación de datos** con TypeScript
 
 ## 🚀 Tecnologías
 
@@ -76,19 +92,19 @@ Backend/
 └── tsconfig.json
 ```
 
-## 📦 Instalación
+## 📦 Instalación Rápida
 
 ### Prerrequisitos
-- Node.js (v16 o superior)
-- PostgreSQL
-- npm o yarn
+- **Node.js** v16 o superior
+- **PostgreSQL** v12 o superior
+- **npm** v7 o superior
 
 ### Pasos de Instalación
 
 1. **Clonar el repositorio**
 ```bash
 git clone <url-del-repositorio>
-cd Backend
+cd git-Ecommerce/Backend
 ```
 
 2. **Instalar dependencias**
@@ -96,32 +112,55 @@ cd Backend
 npm install
 ```
 
-3. **Configurar variables de entorno**
-Crear un archivo `.env` en la raíz del proyecto (ver [Variables de Entorno](#variables-de-entorno))
+3. **Crear archivo `.env`**
+Crea un archivo `.env` en la raíz de Backend/ (ver sección [Variables de Entorno](#variables-de-entorno))
 
-4. **Configurar la base de datos**
+4. **Crear la base de datos** (si no existe)
 ```bash
-# Sincronizar schema con la base de datos existente
-npm run prisma:pull
+# Opción A: Con psql
+psql -U postgres
+CREATE DATABASE ecommerce_db;
+\q
 
-# O crear migraciones nuevas
-npm run prisma:migrate
+# Opción B: Con pgAdmin (GUI)
+# Click derecho en Databases → Create → Database
+# Nombre: ecommerce_db
 ```
 
-5. **Generar el cliente de Prisma**
+5. **Configurar la base de datos con Prisma**
 ```bash
+# Primera vez: crear migraciones
+npm run prisma:migrate
+
+# Generar cliente de Prisma
 npm run prisma:generate
 ```
 
-6. **Iniciar el servidor**
+6. **Crear datos iniciales (seed)**
 ```bash
-# Modo desarrollo
+npm run prisma:seed
+```
+
+7. **Iniciar el servidor**
+```bash
+# Modo desarrollo (con hot-reload)
 npm run dev
 
-# Modo producción
-npm run build
-npm start
+# Deberías ver:
+# Servidor escuchando en puerto 3400
+# Base de datos conectada
 ```
+
+8. **Verificar instalación**
+```bash
+# En otra terminal
+curl http://localhost:3400/api
+
+# O accede desde el navegador/Postman:
+# GET http://localhost:3400/api
+```
+
+**Para guía de instalación completa, ver [Deploy.md](../Deploy.md)**
 
 ## 🔐 Variables de Entorno
 
@@ -388,9 +427,61 @@ Implementa un sistema RBAC (Role-Based Access Control):
 
 ---
 
+## 🆘 Troubleshooting
+
+### Error: "Port 3400 is already in use"
+```bash
+# Cambiar puerto en Backend/.env
+PORT=3401
+```
+
+### Error: "Database connection failed"
+```bash
+# Verificar credenciales en .env
+# Verificar que PostgreSQL está corriendo
+psql -U tu_usuario -h localhost -d ecommerce_db
+
+# Resetear base de datos
+npx prisma migrate reset --schema=src/prisma/schema.prisma
+```
+
+### Error: "Prisma client is not generated"
+```bash
+npm run prisma:generate
+
+# O si hace falta migrar:
+npm run prisma:migrate
+npm run prisma:generate
+```
+
+### Error: "Cannot login / Invalid credentials"
+```bash
+# Ejecutar seed nuevamente
+npm run prisma:seed
+```
+
+### Ver logs de base de datos
+```bash
+# Abrir Prisma Studio (GUI para explorar)
+npx prisma studio --schema=src/prisma/schema.prisma
+```
+
+---
+
+## 📚 Recursos Adicionales
+
+- [Deploy.md](../Deploy.md) - Guía completa de instalación y despliegue
+- [Prisma Documentation](https://www.prisma.io/docs/)
+- [Express Documentation](https://expressjs.com/)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [JWT Documentation](https://jwt.io/)
+
+---
+
 ## 👨‍💻 Autor
 
-**Edilson Luna**
+**Edilson Luna**  
+**Grupo Rojo** - E-commerce de Productos Tecnológicos
 
 ---
 
@@ -399,3 +490,5 @@ Implementa un sistema RBAC (Role-Based Access Control):
 ISC
 
 ---
+
+**Última actualización**: Junio 2026
