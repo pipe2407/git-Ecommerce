@@ -19,6 +19,11 @@ export class OrdenesService {
     return ordenes.map((o) => this.mapear(o));
   }
 
+  async listarTodas(): Promise<iOrdenPublica[]> {
+    const ordenes = await this.repo.listar();
+    return ordenes.map((o) => this.mapear(o));
+  }
+
   async obtener(idParam: string): Promise<iOrdenPublica> {
     const id = aBigInt(idParam, "id");
     const orden = await this.repo.obtenerPorId(id);

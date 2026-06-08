@@ -7,7 +7,7 @@ const categoriasRoutes = Router();
 
 // GET /categorias -> listar (público)
 categoriasRoutes.get("/", listarCategorias);
-// POST /categorias -> crear (solo admin u operario)
-categoriasRoutes.post("/", autenticar, autorizar(["admin", "operario"]), crearCategoria);
+// POST /categorias -> crear (solo admin o seller)
+categoriasRoutes.post("/", autenticar, autorizar(["admin", "seller"]), crearCategoria);
 
 export default categoriasRoutes;

@@ -7,7 +7,7 @@ import { validarEmail, validarPassword, validarRequerido, aBigInt } from "../../
 import { AppError, errorBadRequest, errorNoAutorizado } from "../../../utils/errores";
 
 // Rol por defecto cuando un usuario se registra publicamente
-const ROL_POR_DEFECTO = "ciudadano";
+const ROL_POR_DEFECTO = "buyer";
 
 export class AuthService {
     private authRepository: AuthRepository;

@@ -5,6 +5,15 @@ import { RequestAutenticado } from "../../../types/express";
 
 const ordenesService = new OrdenesService();
 
+export const listarTodasOrdenes = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
+  try {
+    const ordenes = await ordenesService.listarTodas();
+    response.status(200).json(ordenes);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const listarMisOrdenes = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
   try {
     const req = request as RequestAutenticado;

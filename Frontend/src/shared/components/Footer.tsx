@@ -5,7 +5,7 @@ import authService from '../../services/api/authService';
 const getFooterSections = () => {
   const isAuthenticated = authService.isAuthenticated();
   const user = authService.getStoredUser();
-  const userRole = user?.rol?.nombre || localStorage.getItem('userRole') || 'buyer';
+  const userRole = user?.rol || localStorage.getItem('userRole') || 'buyer';
 
   const sections = [
     {
@@ -36,7 +36,7 @@ const getFooterSections = () => {
           ? [
               { label: 'Mis pedidos', to: '/orders' },
               { label: 'Mis favoritos', to: '/wishlist' },
-              ...(userRole === 'seller' || userRole === 'operario'
+              ...(userRole === 'seller'
                 ? [{ label: 'Publicar producto', to: '/publish' }]
                 : []),
             ]

@@ -6,27 +6,54 @@ import { useReportesStore } from '../../../stores/reportesStore';
 import reportesService from '../../../services/api/reportesService';
 import { useProductosStore } from '../../../stores/productosStore';
 import { useOrdenesStore } from '../../../stores/ordenesStore';
+import authService from '../../../services/api/authService';
 import type { ReporteItem } from '../../../types';
 
 export default function ReportsPage() {
   const resumen = useReportesStore((s) => s.resumen);
   const fetchResumen = useReportesStore((s) => s.fetchResumen);
   const [porTipo, setPorTipo] = useState<ReporteItem[]>([]);
-  const [dateFrom, setDateFrom] = useState('2023-09-01');
-  const [dateTo, setDateTo] = useState('2023-10-31');
+  const today = new Date();
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const [dateFrom, setDateFrom] = useState(firstDayOfMonth.toISOString().split('T')[0]);
+  const [dateTo, setDateTo] = useState(lastDayOfMonth.toISOString().split('T')[0]);
 
   const productos = useProductosStore((s) => s.productos);
   const fetchProductos = useProductosStore((s) => s.fetchProductos);
 
   const ordenes = useOrdenesStore((s) => s.ordenes);
-  const fetchOrdenes = useOrdenesStore((s) => s.fetchMisOrdenes);
+  const fetchMisOrdenes = useOrdenesStore((s) => s.fetchMisOrdenes);
+  const fetchTodasLasOrdenes = useOrdenesStore((s) => s.fetchTodasLasOrdenes);
+  const userRole = localStorage.getItem('userRole');
 
   useEffect(() => {
     fetchResumen();
     reportesService.getPorTipo().then(setPorTipo).catch(() => setPorTipo([]));
     fetchProductos();
-    fetchOrdenes();
-  }, [fetchResumen, fetchProductos, fetchOrdenes]);
+
+    // Si es admin, traer todas las órdenes; si no, traer sus órdenes
+    if (userRole === 'admin') {
+      fetchTodasLasOrdenes();
+    } else {
+      fetchMisOrdenes();
+    }
+  }, [fetchResumen, fetchProductos, fetchMisOrdenes, fetchTodasLasOrdenes, userRole]);
+
+  const handleGenerarInforme = async () => {
+    try {
+      fetchResumen();
+      await reportesService.getPorTipo().then(setPorTipo).catch(() => setPorTipo([]));
+      fetchProductos();
+      if (userRole === 'admin') {
+        await fetchTodasLasOrdenes();
+      } else {
+        await fetchMisOrdenes();
+      }
+    } catch (error) {
+      console.error('Error al generar informe:', error);
+    }
+  };
 
   const handleExportExcel = () => {
     const data = [
@@ -64,18 +91,24 @@ export default function ReportsPage() {
   const topVendidos = useMemo(() => {
     const ventasPorProducto = new Map<number, { nombre: string; categoria?: string; precio: number; cantidad: number }>();
 
+    const dateFromObj = new Date(dateFrom);
+    const dateToObj = new Date(dateTo);
+
     ordenes.forEach(orden => {
-      const key = Number(orden.producto.id);
-      const existing = ventasPorProducto.get(key);
-      if (existing) {
-        existing.cantidad += orden.cantidad;
-      } else {
-        ventasPorProducto.set(key, {
-          nombre: orden.producto.nombre,
-          categoria: '',
-          precio: orden.producto.precio,
-          cantidad: orden.cantidad,
-        });
+      const ordenDate = new Date(orden.fechaCreacion);
+      if (ordenDate >= dateFromObj && ordenDate <= dateToObj) {
+        const key = Number(orden.producto.id);
+        const existing = ventasPorProducto.get(key);
+        if (existing) {
+          existing.cantidad += orden.cantidad;
+        } else {
+          ventasPorProducto.set(key, {
+            nombre: orden.producto.nombre,
+            categoria: '',
+            precio: orden.producto.precio,
+            cantidad: orden.cantidad,
+          });
+        }
       }
     });
 
@@ -83,7 +116,7 @@ export default function ReportsPage() {
       .sort((a, b) => b.cantidad - a.cantidad)
       .slice(0, 5)
       .map((p, i) => ({ ...p, cantidadVendida: p.cantidad }));
-  }, [ordenes]);
+  }, [ordenes, dateFrom, dateTo]);
 
   const ventasPorDia = useMemo(() => {
     const ventas = new Map<string, number>();
@@ -95,14 +128,20 @@ export default function ReportsPage() {
 
     dates.forEach(d => ventas.set(d, 0));
 
+    const dateFromObj = new Date(dateFrom);
+    const dateToObj = new Date(dateTo);
+
     ordenes.forEach(orden => {
-      const dia = new Date(orden.fechaCreacion).getDate().toString().padStart(2, '0');
-      const actual = ventas.get(dia) || 0;
-      ventas.set(dia, actual + Number(orden.precioTotal));
+      const ordenDate = new Date(orden.fechaCreacion);
+      if (ordenDate >= dateFromObj && ordenDate <= dateToObj) {
+        const dia = ordenDate.getDate().toString().padStart(2, '0');
+        const actual = ventas.get(dia) || 0;
+        ventas.set(dia, actual + Number(orden.precioTotal));
+      }
     });
 
     return dates.map(d => ventas.get(d) || 0);
-  }, [ordenes]);
+  }, [ordenes, dateFrom, dateTo]);
 
   // Métricas derivadas del resumen real de la API (con fallback a 0).
   const metricas = useMemo(
@@ -162,7 +201,10 @@ export default function ReportsPage() {
                 className="bg-transparent text-white text-sm outline-none cursor-pointer"
               />
             </div>
-            <button className="btn-primary" style={{ padding: '8px 20px' }}>
+            <button
+              onClick={handleGenerarInforme}
+              className="btn-primary"
+              style={{ padding: '8px 20px' }}>
               Generar Informe
             </button>
             <button

@@ -7,6 +7,7 @@ interface OrdenesState {
   loading: boolean;
   error: string | null;
   fetchMisOrdenes: () => Promise<void>;
+  fetchTodasLasOrdenes: () => Promise<void>;
   crearOrden: (datos: CrearOrdenData) => Promise<Orden>;
 }
 
@@ -19,6 +20,16 @@ export const useOrdenesStore = create<OrdenesState>((set) => ({
     set({ loading: true, error: null });
     try {
       const ordenes = await ordenesService.getMisOrdenes();
+      set({ ordenes, loading: false });
+    } catch (err) {
+      set({ error: (err as Error).message, loading: false });
+    }
+  },
+
+  fetchTodasLasOrdenes: async () => {
+    set({ loading: true, error: null });
+    try {
+      const ordenes = await ordenesService.getTodasLasOrdenes();
       set({ ordenes, loading: false });
     } catch (err) {
       set({ error: (err as Error).message, loading: false });

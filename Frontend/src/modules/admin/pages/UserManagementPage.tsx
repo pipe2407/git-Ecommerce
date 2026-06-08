@@ -16,7 +16,7 @@ export default function UserManagementPage() {
       id: String(u.id),
       name: u.nombre,
       email: u.email,
-      role: u.rol?.nombre ?? 'Usuario',
+      role: typeof u.rol === 'string' ? u.rol : u.rol?.nombre ?? 'Usuario',
       status: u.estado === false ? 'Bloqueado' : 'Activo',
       joinedAt: u.fechaCreacion ? new Date(u.fechaCreacion).toLocaleDateString('es-CO') : '—',
     })),
@@ -70,11 +70,11 @@ export default function UserManagementPage() {
                     </td>
                     <td className="p-5">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                        user.role === 'Administrador' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                        user.role === 'Vendedor' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                        user.role === 'admin' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                        user.role === 'seller' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                         'bg-slate-500/10 text-slate-300 border-slate-500/20'
                       }`}>
-                        {user.role}
+                        {user.role === 'admin' ? 'Administrador' : user.role === 'seller' ? 'Vendedor' : user.role === 'buyer' ? 'Comprador' : user.role}
                       </span>
                     </td>
                     <td className="p-5">

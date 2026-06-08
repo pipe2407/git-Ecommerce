@@ -1,6 +1,16 @@
 import { prismaClient } from "../../../prisma/prisma.client";
 
 export class OrdenesRepository {
+  async listar() {
+    return prismaClient.ordenes.findMany({
+      include: {
+        producto: { select: { id: true, nombre: true, precio: true, imagen: true } },
+        comprador: { select: { id: true, nombre: true, email: true } },
+      },
+      orderBy: { fechaCreacion: 'desc' },
+    });
+  }
+
   async listarPorComprador(comprador_id: bigint) {
     return prismaClient.ordenes.findMany({
       where: { comprador_id },

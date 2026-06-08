@@ -17,7 +17,7 @@ function persistAuth(data: LoginResponse): void {
 
   // Compatibilidad con la lógica previa del Navbar (isAuthenticated / userRole).
   localStorage.setItem('isAuthenticated', 'true');
-  const rol = usuario?.rol?.nombre;
+  const rol = usuario?.rol;
   if (rol) localStorage.setItem('userRole', rol);
 }
 

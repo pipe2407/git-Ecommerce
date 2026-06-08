@@ -6,6 +6,7 @@ import ProductCard from '../../../shared/components/ProductCard';
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from '../../../shared/mockData';
 import { useProductosStore } from '../../../stores/productosStore';
 import { useCategoriasStore } from '../../../stores/categoriasStore';
+import { useCarritoStore } from '../../../stores/carritoStore';
 import type { Product } from '../../../shared/mockData';
 
 type SortKey = 'default' | 'price-asc' | 'price-desc' | 'rating';
@@ -30,6 +31,7 @@ export default function CatalogPage() {
   const fetchProductos = useProductosStore((s) => s.fetchProductos);
   const categorias = useCategoriasStore((s) => s.categorias);
   const fetchCategorias = useCategoriasStore((s) => s.fetchCategorias);
+  const agregarProducto = useCarritoStore((s) => s.agregarProducto);
 
   // Lee los parámetros de URL para establecer filtros iniciales
   useEffect(() => {
@@ -224,8 +226,17 @@ export default function CatalogPage() {
                 <ProductCard
                   {...product}
                   onAddToCart={(id) => {
-                    setCartCount(c => c + 1);
-                    console.log('Added to cart:', id, '| Total:', cartCount + 1);
+                    const prod = productos.find(p => p.id === String(id));
+                    if (prod) {
+                      agregarProducto({
+                        productoId: String(prod.id),
+                        nombre: prod.nombre,
+                        precio: prod.precio,
+                        cantidad: 1,
+                        imagen: prod.imagen,
+                      });
+                      setCartCount(c => c + 1);
+                    }
                   }}
                 />
               </Link>

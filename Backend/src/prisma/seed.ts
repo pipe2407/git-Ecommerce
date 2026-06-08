@@ -11,12 +11,12 @@ async function main() {
     console.log("Iniciando seed...");
 
     // ---------------------------------------------------------------
-    // 1. ROLES (admin, operario, ciudadano)
+    // 1. ROLES (admin, seller, buyer)
     // ---------------------------------------------------------------
     const rolesData = [
         { nombre: "admin", descripcion: "Administrador del sistema" },
-        { nombre: "operario", descripcion: "Operario que gestiona notificaciones" },
-        { nombre: "ciudadano", descripcion: "Ciudadano que recibe notificaciones" },
+        { nombre: "seller", descripcion: "Vendedor que publica productos" },
+        { nombre: "buyer", descripcion: "Comprador que realiza pedidos" },
     ];
 
     const roles: Record<string, bigint> = {};
@@ -36,8 +36,8 @@ async function main() {
     const passwordHasheada = await hash("123456", env.saltos_encriptacion);
     const usuariosData = [
         { nombre: "Administrador", email: "admin@test.com", rol: "admin" },
-        { nombre: "Operario", email: "operario@test.com", rol: "operario" },
-        { nombre: "Ciudadano", email: "ciudadano@test.com", rol: "ciudadano" },
+        { nombre: "Vendedor", email: "seller@test.com", rol: "seller" },
+        { nombre: "Comprador", email: "buyer@test.com", rol: "buyer" },
     ];
 
     const usuarios: Record<string, bigint> = {};
@@ -118,7 +118,7 @@ async function main() {
     // ---------------------------------------------------------------
     const totalExistentes = await prismaClient.modulonotificaciones.count();
     if (totalExistentes === 0) {
-        const remitentes = [usuarios["operario@test.com"], usuarios["admin@test.com"]];
+        const remitentes = [usuarios["seller@test.com"], usuarios["admin@test.com"]];
         const categoriasNotificaciones = ["Peticiones", "Quejas", "Sugerencias", "Reclamos", "Informacion"];
         const notificaciones = [];
         for (let i = 1; i <= 10; i++) {

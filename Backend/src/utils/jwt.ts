@@ -5,7 +5,7 @@ import { env } from "../config/env";
 export interface PayloadToken {
     usuario_id: string; // BigInt serializado como string
     email: string;
-    rol: string;        // nombre del rol (admin, operario, ciudadano)
+    rol: string;        // nombre del rol (admin, seller, buyer)
 }
 
 /**

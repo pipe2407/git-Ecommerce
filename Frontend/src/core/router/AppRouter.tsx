@@ -1,5 +1,6 @@
 // Router principal — conecta todos los módulos del backlog EC-001 → EC-010
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import PrivateRoute from './PrivateRoute';
 
 // Home
 import HomePage from '../../pages/HomePage';
@@ -49,15 +50,35 @@ export default function AppRouter() {
         <Route path="/checkout" element={<CheckoutPage />} />
 
         {/* ─ Cuenta ───────────────────────────── */}
-        <Route path="/orders" element={<HistoryPage />} />
+        <Route path="/orders" element={
+          <PrivateRoute requiredRoles={['seller', 'buyer']}>
+            <HistoryPage />
+          </PrivateRoute>
+        } />
 
         {/* ─ Vendedor ─────────────────────────── */}
-        <Route path="/publish"     element={<PublishPage />} />
-        <Route path="/management"  element={<ManagementPage />} />
+        <Route path="/publish" element={
+          <PrivateRoute requiredRoles={['seller']}>
+            <PublishPage />
+          </PrivateRoute>
+        } />
+        <Route path="/management" element={
+          <PrivateRoute requiredRoles={['seller']}>
+            <ManagementPage />
+          </PrivateRoute>
+        } />
 
         {/* ─ Admin ────────────────────────────── */}
-        <Route path="/admin/reports" element={<ReportsPage />} />
-        <Route path="/admin/users"   element={<UserManagementPage />} />
+        <Route path="/admin/reports" element={
+          <PrivateRoute requiredRoles={['admin']}>
+            <ReportsPage />
+          </PrivateRoute>
+        } />
+        <Route path="/admin/users" element={
+          <PrivateRoute requiredRoles={['admin']}>
+            <UserManagementPage />
+          </PrivateRoute>
+        } />
 
         {/* 404 fallback */}
         <Route path="*" element={
